@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="goodsDetail">
+    <select id="selectGoodsDetailByGoodsId" parameterType="Integer" resultType="com.imooc.mybatis.entity.GoodsDetail">
+        select *
+        from t_goods_detail
+        where goods_id = #{value}
+    </select>
+    
+    
+    <!-- 多对一映射关系 -->
+    <resultMap id="rmGoodsDetail" type="com.imooc.mybatis.entity.GoodsDetail">
+        <id column="gd_id" property="gdId"/>
+        <!--注意 association 会优先将查询到的goods_id优先传递给goods,
+        所以此处手动先通过result将goods_id进行赋值, 否则goodsId就是null-->
+        <result column="goods_id" property="goodsId"/>
+
+        <!-- association -->
+        <!-- 从查询到的商品详情信息 取出goods_id字段 传递给goods mapper 查询商品信息 -->
+        <association property="goods" select="goods.selectById" column="goods_id"/>
+    </resultMap>
+    <select id="selectManyToOne" resultMap="rmGoodsDetail">
+        select * from t_goods_detail limit 0, 20
+    </select>
+
+
+</mapper>

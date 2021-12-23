@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mybatis-3-mapper.dtd -->
+
+<mapper namespace="goods">
+    <!--
+        eviction: 缓存清空策略
+        flushInterval: 刷新间隔
+        size: 缓存最大
+        readOnly: 只读
+     -->
+    <cache eviction="LRU" flushInterval="600000" size="512" readOnly="true"/>
+
+
+    <select id="selectAll" resultType="com.imooc.mybatis.entity.Goods">
+        select *
+        from t_goods
+        order by goods_id desc
+        limit 10
+    </select>
+
+    <!-- 单参数 -->
+    <select id="selectById" parameterType="Integer" resultType="com.imooc.mybatis.entity.Goods">
+        select *
+        from t_goods
+        where goods_id = #{id}
+    </select>
+
+    <!-- 多参数传递时，使用parameterType指定Map接口， SQL中的#{key}提取参数 -->
+    <select id="selectByPriceRange" parameterType="java.util.Map" resultType="com.imooc.mybatis.entity.Goods">
+        select *
+        from t_goods
+        where current_price between #{min} and #{max}
+        order by current_price
+        limit 0, #{limit}
+    </select>
+
+    <!-- 多表联合查询 -->
+    <!-- select id="selectGoodsMap"  resultType="java.util.Map"  返回结果乱序-->
+    <!--LinkedHashMap 返回结果有序-->
+    <!--利用LinkedHashMap保存多表关联结果
+        Mybatis会将每一条记录包装为LinkedHashMap对象
+        key是字段名，value是字段所对应的值，字段类型根据表结构进行自动判断
+        优点：易于扩展，易于使用
+        缺点：太过灵活，无法进行编译时检查
+        -> 所以用到, resultMap结果映射
+    -->
+    <select id="selectGoodsMap2" resultType="java.util.LinkedHashMap">
+        select g.*, c.category_name, '1' as test
+        from t_goods g,
+             t_category c
+        where g.category_id = c.category_id
+    </select>
+    <select id="selectGoodsMap1" resultType="java.util.Map">
+        select g.*, c.category_name
+        from t_goods g,
+             t_category c
+        where g.category_id = c.category_id
+    </select>
+
+    <!-- 使用结果映射 -->
+    <resultMap id="rmGoods" type="com.imooc.mybatis.dto.GoodsDTO">
+        <!--设置主键字段与属性映射-->
+        <id property="goods.goodsId" column="goods_id"/>
+        <result property="goods.title" column="title"/>
+        <result property="goods.subTitle" column="sub_title"/>
+        <result property="goods.originalCost" column="original_cost"/>
+        <result property="goods.currentPrice" column="current_price"/>
+        <result property="goods.discount" column="discount"/>
+        <result property="goods.isFreeDelivery" column="is_free_delivery"/>
+        <result property="goods.categoryId" column="category_id"/>
+
+        <!-- <result property="categoryName" column="category_name"/> -->
+        <!--Category-->
+        <!-- 这里的column的category_id可以重复 -->
+        <result property="category.categoryId" column="category_id"/>
+        <result property="category.categoryName" column="category_name"/>
+        <result property="category.parentId" column="parent_id"/>
+        <result property="category.categoryLevel" column="category_level"/>
+        <result property="category.categoryOrder" column="category_order"/>
+
+
+        <result property="test" column="test"/>
+    </resultMap>
+    <select id="selectGoodsDTO" resultMap="rmGoods" resultType="java.util.LinkedHashMap">
+        select g.*, c.*, '1' as test
+        from t_goods g,
+             t_category c
+        where g.category_id = c.category_id
+    </select>
+
+
+    <!-- insert -->
+    <!-- selectKey -->
+    <insert id="insert1" parameterType="com.imooc.mybatis.entity.Goods">
+        INSERT INTO babytun.t_goods(title, sub_title, original_cost, current_price,
+        discount, is_free_delivery, category_id)
+        VALUES (#{title}, #{subTitle}, #{originalCost}, #{currentPrice},
+        #{discount}, #{isFreeDelivery}, #{categoryId});
+
+        <!-- 当前连接中最后产生的id号 -->
+        <!-- 可以在插入之后获得到id, test中的goods.getGoodsId() -->
+        <!-- 主键回填 -->
+        <!-- After: 执行sql语句之后回填 -->
+        <selectKey resultType="int" keyProperty="goodsId" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+    </insert>
+
+
+    <!-- useGeneratedKeys -->
+    <insert id="insert2"
+            parameterType="com.imooc.mybatis.entity.Goods"
+            useGeneratedKeys="true" keyProperty="goodsId" keyColumn="goods_id">
+        INSERT INTO babytun.t_goods(title, sub_title, original_cost, current_price,
+                                    discount, is_free_delivery, category_id)
+        VALUES (#{title}, #{subTitle}, #{originalCost}, #{currentPrice},
+                #{discount}, #{isFreeDelivery}, #{categoryId});
+    </insert>
+
+
+    <!-- update -->
+    <update id="update" parameterType="com.imooc.mybatis.entity.Goods">
+        update babytun.t_goods
+        set title            = #{title},
+            sub_title        = #{subTitle},
+            original_cost    = #{originalCost},
+            current_price    = #{currentPrice},
+            discount         = #{discount},
+            is_free_delivery = #{isFreeDelivery},
+            category_id      = #{categoryId}
+        where goods_id = #{goodsId}
+    </update>
+
+
+    <!-- delete -->
+    <delete id="delete" parameterType="com.imooc.mybatis.entity.Goods">
+        delete
+        from babytun.t_goods
+        where goods_id =
+              #{goodsId}
+    </delete>
+
+    <!-- 测试${} -->
+    <select id="selectByTitle"
+            parameterType="java.util.Map" resultType="com.imooc.mybatis.entity.Goods">
+        select *
+        from t_goods
+        where title = ${title} ${order}
+    </select>
+
+
+    <!-- 动态SQL1 -->
+    <!-- 1=1占位 -->
+    <select id="dynamicSQL1" parameterType="java.util.Map"
+            resultType="com.imooc.mybatis.entity.Goods">
+        select * from t_goods
+        where
+        1=1
+        <if test="categoryId != null">
+            and category_id = #{categoryId}
+        </if>
+        <!-- &lt; 小于等于号的转义符 -->
+        <if test="currentPrice != null">
+            and current_price &lt; #{currentPrice}
+        </if>
+    </select>
+
+    <!-- 动态SQL2 -->
+    <!-- 标签where, 会对语句进行处理, 此处第一个and去掉 -->
+    <select id="dynamicSQL2" parameterType="java.util.Map"
+            resultType="com.imooc.mybatis.entity.Goods">
+        select * from t_goods
+        <where>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <!-- &lt; 小于等于号的转义符 -->
+            <if test="currentPrice != null">
+                and current_price &lt; #{currentPrice}
+            </if>
+        </where>
+    </select>
+
+
+    <!-- oneToMore, 级联查询-->
+    <!--
+        resultMap:可以用来说明一对多或者多对一的映射关系
+        id: resultMap属性引用的标识
+        type: 指向One的实体, 这里是Goods
+     -->
+    <resultMap id="detailMap" type="com.imooc.mybatis.entity.Goods">
+        <!-- 映射Goods对象的主键到goods_id字段, 必须添加主键 -->
+        <id column="goods_id" property="goodsId"/>
+
+        <!-- 除了id的字段,不需要像上面书写大量的result, Goods属性名默认与数据库中字段一一对应,
+        符合驼峰转换
+        只需要额外增加一个collection对集合list进行说明, 从哪里取值-->
+
+        <!-- collection: 集合
+            映射集合对应的就是商品详情页的集合记录
+            property 设置实体类的属性名
+            select 查询商品详情表的查询语句 可以从另一个mapper中查询
+            column 字段名用户传递给查询详情页的SQL语句 作为查询条件
+        -->
+        <!-- collection含义是: 在select * from t_goods limit 0,1
+            得到结果后, 对所有的Goods对象遍历得到goods_id字段值,
+            并带入到goodDetail命名空间的findByGoodsId的SQL中查询
+            将得到的"商品详情"集合赋值给goodsDetailList对象
+         -->
+        <collection property="goodsDetailList" select="goodsDetail.selectGoodsDetailByGoodsId" column="goods_id"/>
+    </resultMap>
+    <!-- resultMap: 说明List集合数据从哪儿来 -->
+    <select id="oneToMany" resultMap="detailMap">
+        select *
+        from t_goods
+        limit 0, 10
+    </select>
+
+
+    <!-- 分页 -->
+    <select id="selectPage" resultType="com.imooc.mybatis.entity.Goods">
+        select *
+        from t_goods
+        where current_price &lt; 1000
+    </select>
+
+
+    <!-- 批量插入数据
+    insert table values("a1", "a2", "a3"),("b1", "b2", "b3"),(...)
+     -->
+    <insert id="batchInsert" parameterType="java.util.List">
+
+        <!-- 通过foreach标签类似循环 进行批量插入
+        注意这几个属性的值 是mybatis强制的 不要改变 collection="list" item="item" index="index"
+        list: 从外侧传入的list集合; item: 循环中的迭代变量; index: 循环的索引(当前第几次循环)
+         separator 分割器 每一条(), (), ()逗号进行分割
+         注意：批量插入会存在两个问题：无法获取插入数据的主键ID
+                批量生成的SQL太长，可能会被服务器拒绝，需要提前进行压力测试 -->
+        insert into t_goods(title, sub_title, original_cost, current_price,
+        discount, is_free_delivery, category_id)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.title}, #{item.subTitle}, #{item.originalCost}, #{item.currentPrice},
+            #{item.discount}, #{item.isFreeDelivery}, #{item.categoryId})
+        </foreach>
+    </insert>
+    <!-- 普通insert -->
+    <insert id="insertGoods" parameterType="com.imooc.mybatis.entity.Goods">
+        INSERT INTO babytun.t_goods(title, sub_title, original_cost, current_price,
+        discount, is_free_delivery, category_id)
+        VALUES (#{title}, #{subTitle}, #{originalCost}, #{currentPrice},
+        #{discount}, #{isFreeDelivery}, #{categoryId});
+
+        <!-- 当前连接中最后产生的id号 -->
+        <!-- 可以在插入之后获得到id, test中的goods.getGoodsId() -->
+        <!-- 主键回填 -->
+        <!-- After: 执行sql语句之后回填 -->
+        <!--<selectKey resultType="int" keyProperty="goodsId" order="AFTER">
+            select last_insert_id()
+        </selectKey>-->
+    </insert>
+
+
+
+    <!-- 批量删除
+        delete from table where goods_id in (, , , , , ,)
+        open和close指的是 in后面的()
+     -->
+    <delete id="batchDelete" parameterType="java.util.List">
+        delete from t_goods
+        where goods_id in
+        <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+
+</mapper>
