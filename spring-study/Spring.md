@@ -1125,11 +1125,298 @@ context.getBean(beanName).toString();// 重写toString方法
 * bean scope默认值singleton(单例),指全局共享同一个对象实例
 * 默认情况下bean会在loC容器创建后自动实例化，全局唯一
 
+```xml
+<bean id="bookDao"
+	class="com.imooc.spring.ioc.bookshop.dao.BookDaoOraclelmpl"
+	scope="prototype" />
+```
+
+| scope属性     | 说明                                                         |
+| ------------- | ------------------------------------------------------------ |
+| **singleton** | 单例（默认值），每一个容器有且只有唯一的实例，实例被全局共享 |
+| **prototype** | 多例，每次使用时都是创建一个实例                             |
+| request       | web环境下，每一次独立请求存在唯一实例                        |
+| session       | web环境下,每一个session存在有唯一实例                        |
+| application   | web环境下,ServletContext存在唯一实例                         |
+| websocket     | 每一次WebSocket连接中存在唯一实例                            |
+
+### singleton单例
+
+scope默认是singleton单例, 在容器启动的时候被IOC容器创建
+
+userDao对象被其他所有的应用对象共享
+
+![image-20211223153629377](img/Spring/image-20211223153629377.png)
+
+* 为什么默认使用单例模式?
+
+如果每一次在需要某一个对象的时候再去创建, 额外占用内存空间和CPU的计算资源, 大应用中频繁创建资源造成的损耗很大. 单例模式可以有效解决创建对象的资源损耗问题
+
+* 会不会出现阻塞?
+
+如果b1, b2, b3同时发起调用, 会不会阻塞?
+
+不会, singleton在容器是单例多线程执行，但是存在**线程安全风险**
+
+* singleton的线程安全问题
+
+<img src="img/Spring/image-20211223153815364.png" alt="image-20211223153815364" style="zoom:67%;" />
+
+如何解决? 很多方法
+
+* synchronize关键字加锁, 设置读取的时候独占
+* 每个用户分配只属于自己的对象, -> Spring中prototype多例
+
+
+
+### prototype多例
+
+![image-20211223154208413](img/Spring/image-20211223154208413.png)
+
+每一个**产生对象注入(或者context.getBean)**的时候, IOC容器都会产生新的Dao
+
+多个实例, 一一绑定, 每个线程的工作互不影响, 解决线程安全问题
+
+### singleton与prototype对比
+
+|              | singleton     | prototype             |
+| ------------ | ------------- | --------------------- |
+| 对象数量     | 全局唯一      | 存在多个              |
+| 实例化时机   | IoC容器启动时 | getBean()或对象注入时 |
+| 线程安全问题 | 存在          | 不存在                |
+| 执行效率     | 高            | 低                    |
+
+### 代码说明区别
+
+s05
+
+1. UserDao和他的的构造方法
+
+```java
+public class UserDao {
+    public UserDao() {
+        System.out.println("hello, UserDao" + this);
+    }
+}
+```
+
+2. applicationContext声明bean, 默认是singleton, 在IOC容器启动时候就实例化
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="userdao" class="com.imooc.spring.ioc.dao.UserDao"/>
+</beans>
+```
+
+3. 启动
+
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class SpringApplication {
+    public static void main(String[] args) {
+
+        ApplicationContext context =
+                new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+    }
+}
+
+```
+
+运行后可以发现, 在IOC容器启动时, 就实例化sington的bean
+
+```
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@7225790e
+```
+
+4. 将scope修改为prototype -> getBean()
+
+```xml
+<bean id="userdao" class="com.imooc.spring.ioc.dao.UserDao" scope="prototype"/>
+```
+
+prototype的实例化是在: getBean()或对象注入时
+
+如果还是直接运行, 不会有输出. 
+
+在SpringApplication中添加:
+
+```java
+UserDao bean = context.getBean("userdao", UserDao.class);
+```
+
+getBean()的时候产生新的对象
+
+```
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@d2cc05a
+```
+
+如果多运行几次
+
+```java
+UserDao bean1 = context.getBean("userdao", UserDao.class);
+UserDao bean2 = context.getBean("userdao", UserDao.class);
+UserDao bean3 = context.getBean("userdao", UserDao.class);
+```
+
+输出:
+
+```
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@d2cc05a
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@6a41eaa2
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@7cd62f43
+```
+
+编号都不一样, 不同的
+
+5. prototype, 方法注入的时候实例化
+
+* 新增Service
+
+```java
+import com.imooc.spring.ioc.dao.UserDao;
+
+public class UserService {
+    private UserDao userDao;
+
+    public UserService() {
+        Syste.out.println("UserService create: " + this);
+    }
+
+    public UserDao getUserDao() {
+        return userDao;
+    }
+
+    public void setUserDao(UserDao userDao) {
+        System.out.println("UserService: setUserDao. " + userDao);
+        this.userDao = userDao;
+    }
+}
+```
+
+* bean中配置
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+<!--    <bean id="userdao" class="com.imooc.spring.ioc.dao.UserDao"/>-->
+    <bean id="userdao" class="com.imooc.spring.ioc.dao.UserDao" scope="prototype"/>
+
+    <bean id="userservice" class="com.imooc.spring.ioc.service.UserService">
+        <property name="userDao" ref="userdao"/>
+    </bean>
+</beans>
+
+```
+
+* ***在IOC容器初始化过程, 会有几个对象***?
+
+会创建两个对象, 第一个是userService, 因为userService默认使用的是单例, 在IOC容器初始化过程中创建; 第二个是userDao, 因为在userService中引用了userDao对象, 需要userDao的实例, 而userdao在容器初始化的时候不存在, 所以IOC也进行了实例化
+
+只保留new class...语句:
+
+```
+ApplicationContext context =
+        new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+```
+
+```
+UserService create: com.imooc.spring.ioc.service.UserService@531be3c5
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@51081592
+UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@51081592
+```
+
+可以通过输出语句看到创建对象的过程
+
+需要注意, 单例模式下bean的初始化顺序是按照bean的书写顺序来确定的, 但是如果增加了prototype的scope, bean不会在IOC容器初始化的时候自动实例化
+
+所以当关联到prototype对象的时候同样会触发实例化操作
+
+* UserService也修改为prototype
+
+```xml
+<bean id="userdao" class="com.imooc.spring.ioc.dao.UserDao" scope="prototype"/>
+<bean id="userservice" class="com.imooc.spring.ioc.service.UserService" scope="prototype">
+    <property name="userDao" ref="userdao"/>
+</bean>
+```
+
+直接运行context是没有被实例化的
+
+运行getBean
+
+```java
+import com.imooc.spring.ioc.dao.UserDao;
+import com.imooc.spring.ioc.service.UserService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class SpringApplication {
+    public static void main(String[] args) {
+
+        ApplicationContext context =
+                new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+        System.out.println("=======ioc容器已初始化========");
+        UserService userService = context.getBean("userservice", UserService.class);
+        UserService userService1 = context.getBean("userservice", UserService.class);
+        UserService userService2 = context.getBean("userservice", UserService.class);
+        UserService userService3 = context.getBean("userservice", UserService.class);
+        UserService userService4 = context.getBean("userservice", UserService.class);
+    }
+}
+```
+
+输出:
+
+```
+=======ioc容器已初始化========
+UserService create: com.imooc.spring.ioc.service.UserService@2a2d45ba
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@42e26948
+UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@42e26948
+UserService create: com.imooc.spring.ioc.service.UserService@6e06451e
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@59494225
+UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@59494225
+UserService create: com.imooc.spring.ioc.service.UserService@6e1567f1
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@5cb9f472
+UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@5cb9f472
+UserService create: com.imooc.spring.ioc.service.UserService@cb644e
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@13805618
+UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@13805618
+UserService create: com.imooc.spring.ioc.service.UserService@56ef9176
+hello, UserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
+UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
+```
+
+可以看到, 在IOC容器初始化的过程中, 咩有产生任何对象, 所有对象都是在getBean或者注入的时候被创建的. UserSevice中注入UserDao的时候, UserDao也是protoType的, 所以都是要新创建的
+
+---
+
+在实际项目中, 这些类应该是什么scope
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+### 对象声明周期
 
 
 
