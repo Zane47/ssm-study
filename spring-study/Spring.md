@@ -1492,7 +1492,35 @@ UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
 
 # Spring AOP
 
-AOP: 面向切面编程
+AOP: 面向切面编程. 
+
+* 介绍Spring AOP与相关概念名词
+* Spring AOP开发与配置流程
+* Spring 五种通知类型与应用场景
+
+AOP: Spring中的可插拔的组件技术
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
