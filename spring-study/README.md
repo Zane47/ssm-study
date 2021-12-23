@@ -53,7 +53,8 @@ IOC对象的实例化
 1. scope singleton与prototype区别
 2. 演示bean生命周期
 
-
+## s06
+自己实现简易IOC容器
 
 
 
