@@ -7,13 +7,19 @@ public class Order {
     private Double total;
 
     public Order() {
-        System.out.println("order NoArgs construct");
+        System.out.println("order NoArgs construct " + this);
     }
 
     public void init() {
         System.out.println("init()");
         total = price * quantity;
     }
+
+    public void destroy() {
+        // 文件, 网络连接, 其他系统方法的调用...
+        System.out.println("destroy");
+    }
+
 
 
     public void pay() {
@@ -25,7 +31,7 @@ public class Order {
     }
 
     public void setPrice(Double price) {
-        System.out.println("setPrice" + price);
+        System.out.println("setPrice " + price);
         this.price = price;
     }
 
@@ -34,7 +40,7 @@ public class Order {
     }
 
     public void setQuantity(Integer quantity) {
-        System.out.println("setQuantity" + quantity);
+        System.out.println("setQuantity " + quantity);
         this.quantity = quantity;
     }
 

@@ -1434,21 +1434,129 @@ UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
 
 ### 案例说明
 
+1. 新增Order类
+
+```java
+public class Order {
+    private Double price;
+    private Integer quantity;
+    private Double total;
+
+    public Order() {
+        System.out.println("order NoArgs construct " + this);
+    }
+
+    public void init() {
+        System.out.println("init()");
+        total = price * quantity;
+    }
+
+    public void pay() {
+        System.out.println("Order pay total: " + total);
+    }
+
+    public void setPrice(Double price) {
+        System.out.println("setPrice " + price);
+        this.price = price;
+    }
+
+
+    public void setQuantity(Integer quantity) {
+        System.out.println("setQuantity " + quantity);
+        this.quantity = quantity;
+    }
+}
+```
+
+注意这里的init方法, 后续要用到
+
+2. xml中配置
+
+```xml
+<!-- init-method在设置完属性之后再去执行 -->
+<bean id="order1" class="com.imooc.spring.ioc.entity.Order" init-method="init">
+    <property name="price" value="19.8"/>
+    <property name="quantity" value="1000"/>
+</bean>
+```
+
+可以看到使用了init-method, 因为在使用标签property设置属性的时候, total属性已知是price*quantity, 不可能手动计算后赋值property. 
+
+所以使用init-method, 利用其在设置完属性之后再去执行的特点, 完成total属性的计算
+
+3. SpringApplication中
+
+```java
+Order order1 = context.getBean("order1", Order.class);
+order1.pay();
+```
+
+输出:
+
+```
+order NoArgs construct com.imooc.spring.ioc.entity.Order@1b7cc17c
+setPrice 19.8
+setQuantity 1000
+init()
+=======ioc容器已初始化========
+Order pay total: 19800.0
+```
+
+1. IOC容器初始化过程中实例化Order对象
+2. set方法设置不同的值
+3. 执行init-method方法
+4. 容器初始化以后, 执行业务逻辑
+
+---
+
+* 容器销毁:
+
+1. SpringApplication中调用销毁方法
+
+```
+// 销毁IOC容器, 没有定义在接口
+// 目的是销毁IOC容器, 会调用bean中的destroy-method
+((ClassPathXmlApplicationContext) context).registerShutdownHook();
+```
+
+2. Order中destroy方法
+
+```java
+public void destroy() {
+    // 文件, 网络连接, 其他系统方法的调用...
+    System.out.println("destroy");
+}
+```
+
+3.xml中配置destroy-method
+
+```xml
+<bean id="order1" class="com.imooc.spring.ioc.entity.Order"
+          init-method="init" destroy-method="destroy">
+    <property name="price" value="19.8"/>
+    <property name="quantity" value="1000"/>
+</bean>
+```
+
+输出:
+
+```
+order NoArgs construct com.imooc.spring.ioc.entity.Order@1b7cc17c
+setPrice 19.8
+setQuantity 1000
+init()
+=======ioc容器已初始化========
+Order pay total: 19800.0
+destroy
+```
+
+可以看到在调用销毁的时候, 会执行destroy-method的方法
 
 
 
+## 极简IOC容器
 
-
-
-
-
-
-
-
-
-
-
-
+s06
 
 
 
