@@ -48,6 +48,11 @@ IOC对象的实例化
 
 
 
+## s05
+
+1. scope singleton与prototype区别
+2. 演示bean生命周期
+
 
 
 

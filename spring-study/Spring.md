@@ -1396,11 +1396,43 @@ hello, UserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
 UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
 ```
 
-可以看到, 在IOC容器初始化的过程中, 咩有产生任何对象, 所有对象都是在getBean或者注入的时候被创建的. UserSevice中注入UserDao的时候, UserDao也是protoType的, 所以都是要新创建的
+可以看到, 在IOC容器初始化的过程中, 没有产生任何对象, 所有对象都是在getBean或者注入的时候被创建的. UserSevice中注入UserDao的时候, UserDao也是protoType的, 所以都是要新创建的
+
+笔试题, 给一份配置文件, 需要看出来在初始化时, 实例化了什么对象
 
 ---
 
-在实际项目中, 这些类应该是什么scope
+在实际项目中, Service, Dao这些类应该是什么scope?
+
+在绝大多数情况下, Service, Dao, SpringMVC的Controller类都是都是单例singleton的. 
+
+单例的线程安全问题根源是因为对象的某一个属性在运行过程中不断变化, 但是实际情况下, 如果UserService被创建, 那么UserDao是哪个具体的类就被确定了, 大部分情况下不会重新设置UserDao, 不会出现线程安全的问题
+
+总结来看, 如果某个属性在运行过程中是恒定不变的, 那么就可以设置成单例singleton; 如果在程序过程中不断变化, 使用prototype
+
+## bean的生命周期
+
+### 整体流程
+
+在IOC容器的某个阶段, Bean做了什么事情
+
+<img src="img/Spring/image-20211223194454063.png" alt="image-20211223194454063" style="zoom: 67%;" />
+
+1. 解析applicationContext.xml文件: 查看当前xml中需要创建哪些对象, 对哪些对象注入什么属性, 基础配置信息
+
+2. 对象实例化: IOC根据XML配置文件, 通过反射实例化对应的bean, 同时基于java的规则, 执行对应的构造方法
+
+3. 对象注入属性: 根据前面解析的XML, 就知道要为当前新创建的对象注入哪些属性
+
+4. 当对象注入以后，由ioc容器会自动的去调用对象的init-method初始化方法, 完成对象的初始化工作
+   * 这里有一个注意点, 之前说得对象初始化在构造方法中完成, 为什么这里又有一个init-method的配置? 因为在构造方法创建的时候，作为这个对象，他还没有任何属性. 只有当对象创建好之后, IOC容器才为其注入了这个对象数据. 
+   * init的作用就是在为对象注入属性值之后, 基于属性值完成对象的初始化工作
+
+5. IOC容器初始化完毕后, 通过代码调用这些对象的业务代码
+6. IOC容器结束准备销毁, 调用在配置文件中所声明的destory-method方法释放对应的资源
+7. 所有的destory-method方法执行完成, IOC容器销毁完毕
+
+### 案例说明
 
 
 
@@ -1416,7 +1448,11 @@ UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
 
 
 
-### 对象声明周期
+
+
+
+
+
 
 
 
@@ -1455,6 +1491,10 @@ UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
 
 
 # Spring AOP
+
+AOP: 面向切面编程
+
+
 
 
 
