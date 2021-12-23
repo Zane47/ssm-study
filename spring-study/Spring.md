@@ -846,6 +846,12 @@ setApple: com.imooc.spring.ioc.entity.Apple@735b478
 
 与map区别: properties只允许key和value是字符串类型
 
+---
+
+例子:->s04
+
+```xml
+```
 
 
 
@@ -855,6 +861,27 @@ setApple: com.imooc.spring.ioc.entity.Apple@735b478
 
 
 
+1. 可以看到ApplicatoinContext中List的默认注入类型是ArrayList
+
+![image-20211223141835884](img/Spring/image-20211223141835884.png)
+
+
+
+2. Set标签去重, LinkedHashSet, TreeSet是无需的, 但是linkedHashSet在内存中数据分散存储, 但是基于双向链表, 数据在提取的时候按照数据存放的顺序.
+
+<img src="img/Spring/image-20211223143030351.png" alt="image-20211223143030351" style="zoom:67%;" />
+
+3. Map标签, 可以直接ref来指向外部的bean, 但是麻烦; 也可以直接写内置bean, 只给该map使用
+
+Map的类型是LinkedHashMap, 双向链表, 数据遍历提取的时候按照数据存放的顺序
+
+![image-20211223143012475](img/Spring/image-20211223143012475.png)
+
+4. property, 
+
+```java
+company.getInfo().getProperty("key")
+```
 
 
 
@@ -1049,7 +1076,9 @@ Orcale table Book insert one revord
 
 
 
+## 查看容器内对象
 
+实用技巧
 
 
 

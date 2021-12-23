@@ -1,3 +1,4 @@
 target
 mybatis-study/mybatis-hello/src/main/resources/mybatis-config.xml
 .idea
+*.iml

@@ -4,9 +4,56 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         https://www.springframework.org/schema/beans/spring-beans.xsd">
 
+    <bean id="computer1" class="com.imooc.spring.ioc.entity.Computer">
+        <constructor-arg name="brand" value="联想"/>
+        <constructor-arg name="type" value="台式机"/>
+        <constructor-arg name="sn" value="8389283012"/>
+        <constructor-arg name="price" value="3085"/>
+    </bean>
 
+    <bean id="company" class="com.imooc.spring.ioc.entity.Company">
+        <property name="rooms">
+            <list>
+                <value>2001-总裁办</value>
+                <value>2003-总经理办公室</value>
+                <value>2010-研发部会议室</value>
+                <value>2010-研发部会议室</value>
+            </list>
+        </property>
 
+        <property name="rooms1">
+            <set>
+                <value>2001-总裁办</value>
+                <value>2003-总经理办公室</value>
+                <value>2010-研发部会议室</value>
+                <value>2010-研发部会议室</value>
+            </set>
+        </property>
 
+        <property name="computerMap">
+            <map>
+                <!-- 这个写法要求每次要写一个computer的bean -->
+                <entry key="dev-88172" value-ref="computer1"/>
+                <!-- 使用内置bean, 只给该map使用 -->
+                <entry key="dev-88173">
+                    <bean class="com.imooc.spring.ioc.entity.Computer">
+                        <constructor-arg name="brand" value="dell"/>
+                        <constructor-arg name="type" value="台式机"/>
+                        <constructor-arg name="sn" value="8389283013"/>
+                        <constructor-arg name="price" value="3099"/>
+                    </bean>
+                </entry>
+            </map>
+        </property>
+
+        <property name="info">
+            <props>
+                <prop key="phone">01000000</prop>
+                <prop key="address">China-xxx</prop>
+                <prop key="website">www.xxx.com</prop>
+            </props>
+        </property>
+    </bean>
 
 
 </beans>
