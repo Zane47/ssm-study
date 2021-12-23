@@ -11,6 +11,20 @@
         <constructor-arg name="price" value="3085"/>
     </bean>
 
+    <bean class="com.imooc.spring.ioc.entity.Computer">
+        <constructor-arg name="brand" value="huawei"/>
+        <constructor-arg name="type" value="台式机"/>
+        <constructor-arg name="sn" value="98989"/>
+        <constructor-arg name="price" value="7777"/>
+    </bean>
+
+    <bean class="com.imooc.spring.ioc.entity.Computer">
+        <constructor-arg name="brand" value="微星"/>
+        <constructor-arg name="type" value="台式机"/>
+        <constructor-arg name="sn" value="9898988"/>
+        <constructor-arg name="price" value="7777"/>
+    </bean>
+
     <bean id="company" class="com.imooc.spring.ioc.entity.Company">
         <property name="rooms">
             <list>

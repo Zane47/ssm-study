@@ -687,9 +687,7 @@ ApplicationContext context =
 * 基于setter方法注入对象(开发中常用) ->两种 使用场景
 * 基于构造方法注入对象
 
-#### 基于setter方法注入对象
-
-##### 利用setter实现静态数值的注入
+#### 利用setter实现静态数值的注入
 
 1. 属性使用property标签指代, name: 属性名, value: 属性值
 
@@ -735,7 +733,7 @@ private Double price;
 Exception in thread "main" org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sweetApple' defined in class path resource [applicationContext.xml]: Error setting property values; nested exception is org.springframework.beans.NotWritablePropertyException: Invalid property 'price' of bean class [com.imooc.spring.ioc.entity.Apple]: Bean property 'price' is not writable or has an invalid setter method. Does the parameter type of the setter match the return type of the getter?
 ```
 
-##### setter方法注入对象(对象与对象之间的依赖)
+#### setter方法注入对象(对象与对象之间的依赖)
 
 ref后写有效的bean id, 完成apple和child关联
 
@@ -850,16 +848,67 @@ setApple: com.imooc.spring.ioc.entity.Apple@735b478
 
 例子:->s04
 
+ApplicationContext.xml
+
 ```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="computer1" class="com.imooc.spring.ioc.entity.Computer">
+        <constructor-arg name="brand" value="联想"/>
+        <constructor-arg name="type" value="台式机"/>
+        <constructor-arg name="sn" value="8389283012"/>
+        <constructor-arg name="price" value="3085"/>
+    </bean>
+
+    <bean id="company" class="com.imooc.spring.ioc.entity.Company">
+        <property name="rooms">
+            <list>
+                <value>2001-总裁办</value>
+                <value>2003-总经理办公室</value>
+                <value>2010-研发部会议室</value>
+                <value>2010-研发部会议室</value>
+            </list>
+        </property>
+
+        <property name="rooms1">
+            <set>
+                <value>2001-总裁办</value>
+                <value>2003-总经理办公室</value>
+                <value>2010-研发部会议室</value>
+                <value>2010-研发部会议室</value>
+            </set>
+        </property>
+
+        <property name="computerMap">
+            <map>
+                <!-- 这个写法要求每次要写一个computer的bean -->
+                <entry key="dev-88172" value-ref="computer1"/>
+                <!-- 使用内置bean, 只给该map使用 -->
+                <entry key="dev-88173">
+                    <bean class="com.imooc.spring.ioc.entity.Computer">
+                        <constructor-arg name="brand" value="dell"/>
+                        <constructor-arg name="type" value="台式机"/>
+                        <constructor-arg name="sn" value="8389283013"/>
+                        <constructor-arg name="price" value="3099"/>
+                    </bean>
+                </entry>
+            </map>
+        </property>
+
+        <property name="info">
+            <props>
+                <prop key="phone">01000000</prop>
+                <prop key="address">China-xxx</prop>
+                <prop key="website">www.xxx.com</prop>
+            </props>
+        </property>
+    </bean>
+</beans>
 ```
-
-
-
-
-
-
-
-
 
 1. 可以看到ApplicatoinContext中List的默认注入类型是ArrayList
 
@@ -882,26 +931,6 @@ Map的类型是LinkedHashMap, 双向链表, 数据遍历提取的时候按照数
 ```java
 company.getInfo().getProperty("key")
 ```
-
-
-
-
-
-
-
-
-
-#### 方法注入对象
-
-
-
-
-
-
-
-
-
-
 
 #### 依赖注入的好处
 
@@ -1058,39 +1087,43 @@ purchase start
 Orcale table Book insert one revord
 ```
 
+## 查看IOC容器内对象
 
+```java
+// 获取容器内所有bean Id数组
+String[] beanNames = context.getBeanDefinitionNames();
+```
 
+1. 需要注意的是, 如果是内部bean, 例如在"注入集合对象"中的Map的内部bean, IOC容器认为该bean只给当前MapValue, 其他地方不会使用
 
+2. 对于没有指定id和name的bean, 输出类似`com.imooc.spring.ioc.entity.Computer#0`.如果有多个同class的匿名bean, 就会按照0,1,2,3,4的来排列
 
+3. 如果有多个匿名bean, 使用类全称获取bean的时候, 默认获取的是第一个匿名bean. 
+   如果要获取其他的, 需要加上#和编号. 实际不推荐使用, 因为如果位置修改了, 代码也需要修改
 
+```java
+Computer computer0 = 
+    context.getBean("com.imooc.spring.ioc.entity.Computer", Computer.class);
+System.out.println(computer0.getBrand());
 
+Computer computer1 =
+    context.getBean("com.imooc.spring.ioc.entity.Computer#1", Computer.class);
+System.out.println(computer1.getBrand());
+```
 
+4. bean的类型和内容
 
-
-
-
-
-
-
-
-
-
-
-## 查看容器内对象
-
-实用技巧
-
-
-
-
-
-
-
-
+```java
+context.getBean(beanName).getClass().getName();
+context.getBean(beanName).toString();// 重写toString方法
+```
 
 ## Bean scope
 
-
+* bean scope属性用于决定对象何时被创建与作用范围
+* bean scope配置将影响容器内对象的数量
+* bean scope默认值singleton(单例),指全局共享同一个对象实例
+* 默认情况下bean会在loC容器创建后自动实例化，全局唯一
 
 
 
