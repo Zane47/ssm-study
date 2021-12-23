@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--在Ioc容器启动时，自动由Spring实例化Apple对象，取名sweetApple放入到容器中-->
+    <!--
+        bean: 通知IOC容器需要实例化什么对象
+        class: 从哪个类进行实例化
+    -->
+    <!-- <Bean>标签默认通过默认构造方法创建对象 -->
+    <bean id="apple1" class="com.imooc.spring.ioc.entity.Apple"/>
+
+
+    <!-- 含参初始化 -->
+    <!-- 参数名 -->
+    <bean id="sweetApple" class="com.imooc.spring.ioc.entity.Apple">
+        <!--没有constructor-arg则代表调用默认构造方法实例化-->
+        <constructor-arg name="title" value="红富士"/>
+        <constructor-arg name="color" value="红色"/>
+        <constructor-arg name="origin" value="欧洲"/>
+    </bean>
+
+    <bean id="sweetApple1" class="com.imooc.spring.ioc.entity.Apple">
+        <!--没有constructor-arg则代表调用默认构造方法实例化-->
+        <constructor-arg name="title" value="红富士"/>
+        <constructor-arg name="color" value="红色"/>
+        <constructor-arg name="origin" value="欧洲"/>
+        <constructor-arg name="price" value="12.55"/>
+    </bean>
+
+    <!-- 参数位置 -->
+    <bean id="sweetApple2" class="com.imooc.spring.ioc.entity.Apple">
+        <!--利用构造方法参数位置实现对象实例化-->
+        <constructor-arg index="0" value="红富士"/>
+        <constructor-arg index="1" value="红色"/>
+        <constructor-arg index="2" value="欧洲"/>
+    </bean>
+
+
+    <!-- 利用静态工厂获取对象 -->
+    <bean id="apple4" class="com.imooc.spring.ioc.factory.AppleStaticFactory"
+          factory-method="createSweetApple"/>
+
+
+
+    <!-- 利用工厂实例获取对象 -->
+    <!-- 在IOC容器初始化中, 首先对工厂进行实例化 -->
+    <bean id="factoryInstance" class="com.imooc.spring.ioc.factory.AppleFactoryInstance"/>
+    <bean id="apple5" factory-bean="factoryInstance" factory-method="createSweetApple"/>
+</beans>
+

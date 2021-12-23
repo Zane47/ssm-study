@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--在Ioc容器启动时，自动由Spring实例化Apple对象，取名sweetApple放入到容器中-->
+    <bean id="sweetApple" class="com.imooc.spring.ioc.entity.Apple">
+        <property name="title" value="红富士"/>
+        <property name="color" value="Red"/>
+        <property name="origin" value="Eur"/>
+    </bean>
+
+    <bean id="sourApple" class="com.imooc.spring.ioc.entity.Apple">
+        <property name="title" value="green apple"/>
+        <property name="color" value="Green"/>
+        <property name="origin" value="origin2"/>
+    </bean>
+
+    <bean id="softApple" class="com.imooc.spring.ioc.entity.Apple">
+        <property name="title" value="金帅"/>
+        <property name="color" value="Red"/>
+        <property name="origin" value="China"/>
+    </bean>
+
+    <bean id="newApple" class="com.imooc.spring.ioc.entity.Apple">
+        <property name="title" value="newApple"/>
+        <property name="color" value="Red"/>
+        <property name="origin" value="China"/>
+    </bean>
+
+
+    <bean id="child1" class="com.imooc.spring.ioc.entity.Child">
+        <property name="name" value="child1"/>
+        <property name="apple" ref="newApple"/>
+    </bean>
+
+    <bean id="child2" class="com.imooc.spring.ioc.entity.Child">
+        <property name="name" value="child2"/>
+        <property name="apple" ref="sourApple"/>
+    </bean>
+
+    <bean id="child3" class="com.imooc.spring.ioc.entity.Child">
+        <property name="name" value="child3"/>
+        <property name="apple" ref="softApple"/>
+    </bean>
+</beans>
+

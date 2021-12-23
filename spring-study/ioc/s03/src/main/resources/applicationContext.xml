@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--IoC容器自动利用反射机制运行时调用stXXX方法为属性赋值-->
+    <bean id="sweetApple" class="com.imooc.spring.ioc.entity.Apple">
+        <property name="title" value="红富士"/>
+        <property name="color" value="red"/>
+        <property name="origin" value="eur"/>
+        <property name="price" value="12.2"/>
+    </bean>
+
+    <!-- -->
+    <bean id="lily" class="com.imooc.spring.ioc.entity.Child">
+        <property name="name" value="莉莉"/>
+        <property name="apple" ref="sweetApple"/>
+    </bean>
+
+
+
+
+</beans>
+
