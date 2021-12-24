@@ -1699,13 +1699,168 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 * 利用反射基础实例化对象
 * 调用set方法设置属性(组装setMethodName, invoke)
 
-
-
-
-
-
-
 ## 基于注解与Java Config配置IoC容器
+
+配置方式的不同, xml, 注解, java Config底层原理一致
+
+
+
+### 基础注解配置IOC容器
+
+优势: 
+
+* 摆脱繁琐的XML形式的bean与依赖注入配置(bean很多的话, 需要写很多, 要源代码和xml文件之间切换)
+* 基于”声明式”的原则，更适合轻量级的现代企业应用(注解是写在源代码中的配置信息)
+* 让代码可读性变得更好，研发人员拥有更好的开发体验
+
+三种注解:
+
+* 组件类型注解-声明当前类的功能与职责
+* 自动装配注解-根据属性特征自动注入对象
+* 元数据注解-更细化的辅助loC容器管理对象的注解
+
+#### 四种组件类型注解
+
+| 注解        | 说明                                                        |
+| ----------- | ----------------------------------------------------------- |
+| @Component  | 组件注解，通用注解，被该注解描述的类将被loC容器管理并实例化 |
+| @Controller | 语义注解，说明当前类是MVC应用中的控制器类                   |
+| @Service    | 语义注解，说明当前类是Service业务服务类                     |
+| @Repository | 语义注解，说明当前类用于业务持久层，通常描述对应Dao类       |
+
+通常放在java类上, 各自的语义就是当前的bean需要被IOC容器创建和管理, 利用注解通知IOC容器各自类的职责是什么
+
+Component: 开发中无法确认该类是controller, service还是repository, 边界模糊, 这个时候就可以使用component, 最统称的注解. 其他三个是细化的注解
+
+* 需要开启组件扫描才可以使用注解
+
+```xml
+<！--XML配置开启组件扫描，才能使用注解-->
+<context:component-scan base-package="com.imooc">
+    <!-- 不想扫描的类, 正则表达式 -->
+	<context:exclude-filter type="regex" expression="com.imooc.exl.*"/>
+</context:component-scan>
+```
+* 组件类型注解默认beanId为类名首字母小写
+
+也可以进行手动设置, 例如: @Repository("udao")
+
+---
+
+1. 配置xml文件[beans-annotation-config](https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-annotation-config)
+
+注解类的xml和普通的xml不同, 多了一个context命名空间
+
+```xml
+xmlns:context="http://www.springframework.org/schema/context"
+```
+
+命名空间: 类比java中的包名, 多个重复标签前可以添加此命名空间做区分
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--在IoC容器初始化时自动扫描四种组件类型注解并完成实例化
+        @Repository
+        @Service
+        @Controller
+        @Component
+    -->
+    <context:component-scan base-package="com.imooc"/>
+</beans>
+```
+
+设置基准扫描的包名
+
+2. 设置不同的注解, 添加各自的组件类型
+
+![image-20211224100657625](img/Spring/image-20211224100657625.png)
+
+```java
+import org.springframework.stereotype.Repository;
+
+/**
+ * CRUD
+
+ * 组件类型注解默认beanId为类名首字母小写userDao
+ *
+ */
+@Repository
+public class UserDao {
+}
+```
+
+也可以使用自定义beanid, @repository("uDao")
+
+3. 输出
+
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class SpringApplication {
+    public static void main(String[] args) {
+
+        ApplicationContext context =
+                new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+        String[] ids = context.getBeanDefinitionNames();
+        for (String id : ids) {
+            System.out.println(id + ": " + context.getBean(id));
+        }
+    }
+}
+```
+
+```
+userController: com.imooc.spring.controller.UserController@17baae6e
+userDao: com.imooc.spring.dao.UserDao@69379752
+userService: com.imooc.spring.service.UserService@27fe3806
+stringUtils: com.imooc.spring.utils.StringUtils@5f71c76a
+org.springframework.context.annotation.internalConfigurationAnnotationProcessor: org.springframework.context.annotation.ConfigurationClassPostProcessor@1d7acb34
+org.springframework.context.annotation.internalAutowiredAnnotationProcessor: org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor@48a242ce
+org.springframework.context.annotation.internalCommonAnnotationProcessor: org.springframework.context.annotation.CommonAnnotationBeanPostProcessor@1e4a7dd4
+org.springframework.context.event.internalEventListenerProcessor: org.springframework.context.event.EventListenerMethodProcessor@4f51b3e0
+org.springframework.context.event.internalEventListenerFactory: org.springframework.context.event.DefaultEventListenerFactory@4b9e255
+```
+
+#### 两类自动装配注解
+
+自动装配: IOC容器在运行过程中自动为某个属性赋值
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### 元数据注解
+
+
+
+
+
+
+
+
 
 
 
