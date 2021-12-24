@@ -2755,7 +2755,7 @@ insert one record
 
 ## 简介
 
-AOP: 面向切面编程. 
+AOP: 面向切面编程. 运行在IOC之上, 需要IOC为基础
 
 * 介绍Spring AOP与相关概念名词
 * Spring AOP开发与配置流程
@@ -2796,6 +2796,222 @@ AOP: Spring中的可插拔的组件技术
 * 切面可配置在目标方法的执行前、后运行，真正做到即插即用
 
 ***在不修改源码的情况下对程序行为进行扩展***
+
+## AOP初体验
+
+UserService, UserDao, EmployeeService, EmployeeDao
+
+要求在每个Service和dao执行之前, 输出时间 -> s01
+
+```java
+public class UserDao {
+    public void insert(){
+        System.out.println("insert one record to User");
+    }
+}
+```
+
+```java
+import com.imooc.spring.aop.dao.UserDao;
+public class UserService {
+    private UserDao userDao;
+    public void createUser() {
+        /*if (1 == 1) {
+            throw new RuntimeException("用户已存在");
+        }*/
+        System.out.println("UserService, createUser()");
+        userDao.insert();
+    }
+    public String generateRandomPassword(String type, Integer length) {
+        System.out.println("按" + type + "方式生成" + length + "位随机密码");
+        return "Zxcquei1";
+    }
+
+    public UserDao getUserDao() {
+        return userDao;
+    }
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
+    }
+}
+```
+
+```java
+public class EmployeeDao {
+    public void insert(){
+        System.out.println("insert one record to Employee");
+    }
+}
+```
+
+```java
+import com.imooc.spring.aop.dao.EmployeeDao;
+import java.util.Date;
+public class EmployeeService {
+    private EmployeeDao employeeDao;
+
+    public void entry() {
+        System.out.println("EmployeeService, entry()");
+        employeeDao.insert();
+    }
+
+    public EmployeeDao getEmployeeDao() {
+        return employeeDao;
+    }
+
+    public void setEmployeeDao(EmployeeDao employeeDao) {
+        this.employeeDao = employeeDao;
+    }
+}
+```
+
+使用AOP, 在方法运行前进行拦截, 打印时间. 不修改源代码, 直接扩展 -> Spring AOP
+
+1. 添加AOP的pom依赖spring-context和aspectjweaver
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.2.6.RELEASE</version>
+</dependency>
+
+<!--aspectjweaver是Spring AOP的底层依赖-->
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjweaver</artifactId>
+    <version>1.9.5</version>
+</dependency>
+```
+
+aspectjwaver是Spring AOP的底层依赖
+
+2. 添加Aspect切面类
+
+```Java
+package com.imooc.spring.aop.aspect;
+
+import org.aspectj.lang.JoinPoint;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+// 切面类
+public class MethodAspect {
+    // 切面方法,用于扩展额外功能
+    // JoinPoint 连接点,通过连接点可以获取目标类/方法的信息
+    public void printExecTime(JoinPoint joinPoint) {
+        // ------------------------ 哪些类的哪些方法在什么时间执行 ------------------------
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss SSS");
+        String now = simpleDateFormat.format(new Date());
+        // 获取目标类的名称
+        String className = joinPoint.getTarget().getClass().getName();
+        // 获取方法名称
+        String methodName = joinPoint.getSignature().getName();
+
+        System.out.println("---->" + now + ":" + className + "." + methodName);
+    }
+}
+```
+
+获取类的名称, 类的方法, 类的执行时间
+
+3. 添加applicationContext.xml配置文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+    <bean id="userDao" class="com.imooc.spring.aop.dao.UserDao"/>
+    <bean id="employeeDao" class="com.imooc.spring.aop.dao.EmployeeDao"/>
+    <bean id="userService" class="com.imooc.spring.aop.service.UserService">
+        <property name="userDao" ref="userDao"/>
+    </bean>
+    <bean id="employeeService" class="com.imooc.spring.aop.service.EmployeeService">
+        <property name="employeeDao" ref="employeeDao"/>
+    </bean>
+
+    <!-- AOP配置 -->
+
+    <!-- IOC配置 -->
+    <bean id="methodAspect" class="com.imooc.spring.aop.aspect.MethodAspect"/>
+
+    <!-- PointCut 切点,
+        使用execution表达式描述切面的作用范围: pointCut作用在哪些类的哪些方法上 -->
+    <!-- execution(public * com.imooc..*.*(..)) 说明切面作用在com.imooc包下的所有类的所有方法上 -->
+    <aop:config>
+        <aop:pointcut id="pointcut" expression="execution(public * com.imooc..*.*(..))"/>
+
+        <!-- aop:aspect: 定义切面类 -->
+        <aop:aspect ref="methodAspect">
+            <!-- before, 前置通知(Advice),
+            代表在目标方法运行前先执行methodAspect.printExecutionTime()
+             他的作用范围是由pointcut中的expression表达式决定的-->
+            <aop:before method="printExecTime" pointcut-ref="pointcut"/>
+        </aop:aspect>
+    </aop:config>
+</beans>
+```
+
+aop:config标签对切面进行配置
+
+aop:pointcut用于描述切点作用在哪些类的哪些方法上, execution表达式
+
+aop:aspect增加aop:before标签代表在目标方法运行前先执行methodAspect.printExecutionTime(), 他的作用范围是由pointcut中的expression表达式决定的
+
+
+
+4. SpringApplication中
+
+```java
+package com.imooc.spring.aop;
+import com.imooc.spring.aop.service.UserService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class SpringApplication {
+    public static void main(String[] args) {
+        ApplicationContext context =
+                new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+        UserService userService = context.getBean("userService", UserService.class);
+        userService.createUser();
+    }
+}
+```
+
+输出:
+
+```
+---->2021-12-24 22:05:12 991:com.imooc.spring.aop.service.UserService.createUser
+UserService, createUser()
+---->2021-12-24 22:05:13 015:com.imooc.spring.aop.dao.UserDao.insert
+insert one record to User
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
