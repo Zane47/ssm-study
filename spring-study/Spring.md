@@ -1842,6 +1842,12 @@ org.springframework.context.event.internalEventListenerFactory: org.springframew
   * @Named: 与@Inject配合使用，JSR-330规范，按属性名自动装配
   * @Resource: 基于JSR-250规范，优先按名称、再按类型智能匹配
 
+在实际过程中推荐按名称装配, autowired的问题见`代码演示`
+
+原理: 
+
+@Resource和@Autowired方法都可以不适用setter方法来完成对象的注入, 运行时通过反射技术将属性从private修改为public, 再完成属性的直接赋值, 赋值完之后再改为private.
+
 ---
 
 #### 例子
@@ -1861,7 +1867,7 @@ book-shop中, serivce中引用bookDao, 使用bean的id(名称)动态注入到其
 
 ---
 
-#### 代码演示
+#### 具体讲解, 代码演示
 
 Controller依赖于Service, Service依赖于Dao
 
@@ -2077,31 +2083,100 @@ Caused by: org.springframework.beans.factory.NoUniqueBeanDefinitionException: No
 
 为了避免这种问题, 在实际项目中, 多采用按照名称注入的方法, 因为名称在容器中是唯一的
 
-
-
-
-
-##### @Inject
-
-
-
-
-
-##### @Named
-
-
-
-
-
-
-
 ##### @Resource
 
+优先按名称、再按类型智能匹配
+
+注解流程:
+
+```
+1.@Resource设置name属性，则按name在Ioc容器中将bean注入, 如果未找到, 则报错
+2.@Resource未设置name属性
+2.1 以属性名作为bean name在IoC容器中匹配bean，如有匹配, 则注入
+2.2 按属性名未匹配，则按类型进行匹配，同@Autowired, 如果出现冲突, 需加入Primary解决类型冲突
+使用建议：在使用@Resource对象时推荐设置name或保证属性名与bean名称一致
+```
+
+1. 新增DepartmentService
+
+```java
+import com.imooc.spring.dao.IUserDao;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+
+@Service
+public class DepartmentService {
+
+    /**
+     * 1.@Resource设置name属性，则按name在Ioc容器中将bean注入, 如果未找到, 则报错
+     * 2.@Resource未设置name属性
+     * 2.1 以属性名作为bean name在IoC容器中匹配bean，如有匹配则注入
+     * 2.2 按属性名未匹配，则按类型进行匹配，同@Autowired,如果出现冲突, 需加入Primary解决类型冲突
+     * 使用建议：在使用@Resource对象时推荐设置name或保证属性名与bean名称一致
+     */
+    // 1. 使用namne
+    /*@Resource(name = "userOracleDao")
+    private IUserDao udao;*/
+
+    // 2. 规范属性名
+    @Resource
+    private IUserDao userOracleDao;
+
+    public void joinDepartment() {
+        System.out.println(userOracleDao);
+    }
+}
+```
+
+@Resource标签两种常用的方法
+
+* 使用@Resource(name="")设置bean
+* 规范属性名称为bean id
+
+ 
+
+2. 获取bean
+
+```java
+DepartmentService departmentService = context.getBean("departmentService", DepartmentService.class);
+departmentService.joinDepartment();
+```
+
+可以看到输出:
+
+```
+UserDao constructor com.imooc.spring.dao.UserDao@5579bb86
+UserOracleDao constructor com.imooc.spring.dao.UserOracleDao@5204062d
+UserService constructor com.imooc.spring.service.UserService@4516af24
+com.imooc.spring.dao.UserOracleDao@5204062d
+com.imooc.spring.dao.UserOracleDao@5204062d
+```
+
+注入的就是之前实例化的对象
+
+---
 
 
 
+原理: 
+
+@Resource和@Autowired方法都可以不适用setter方法来完成对象的注入, 运行时通过反射技术将属性从private修改为public, 再完成属性的直接赋值, 赋值完之后再改为private.
 
 #### 元数据注解
+
+为IOC容器管理对象的时候提供辅助信息
+
+| 注解           | 说明                                                       |
+| -------------- | ---------------------------------------------------------- |
+| @Primary       | 按类型装配时出现多个相同类型对象，拥有此注解对象优先被注入 |
+| @PostConstruct | 描述方法，相当于XML中init-method配置的注解版本             |
+| @PreDestroy    | 描述方法，相当于XML中destroy-method配置的注解版本          |
+| @Scope         | 设置对象的scope属性                                        |
+| @Value         | 为属性注入静态数据                                         |
+
+
+
 
 
 

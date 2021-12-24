@@ -1,5 +1,6 @@
 package com.imooc.spring;
 
+import com.imooc.spring.service.DepartmentService;
 import com.imooc.spring.service.UserService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -17,6 +18,9 @@ public class SpringApplication {
         for (String id : ids) {
             System.out.println(id + ": " + context.getBean(id));
         }*/
+
+        DepartmentService departmentService = context.getBean("departmentService", DepartmentService.class);
+        departmentService.joinDepartment();
 
 
     }
