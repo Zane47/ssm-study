@@ -2175,26 +2175,113 @@ com.imooc.spring.dao.UserOracleDao@5204062d
 | @Scope         | 设置对象的scope属性                                        |
 | @Value         | 为属性注入静态数据                                         |
 
+* UserService中添加注解
+
+```java
+package com.imooc.spring.service;
+
+import com.imooc.spring.dao.IUserDao;
+import com.imooc.spring.dao.UserDao;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+@Service
+@Scope("prototype")// 设置单例/多丽, xml中的bean scope相同
+public class UserService {
+    @Value("${metaData}") // 读取config.properties的metaData属性值
+    private String metaData;
+    // @Autowired
+    // Spring Ioc容器会自动通过反射技术将属性private修饰符自动改为public,直接进行赋值
+    // 不再执行set方法
+    // private UserDao userDao;
+    @Autowired
+    private IUserDao uDao;
+    @PostConstruct// 相当于xml中的init-method
+    public void init() {
+        System.out.println("UserService: init method, metaData = " + metaData);
+    }
+
+    public UserService() {
+        System.out.println("UserService constructor " + this);
+    }
+
+    /*@Autowired
+    // 如果装配注解Autowired放在set方法上，则自动按类型/名称对set方法参数进行注入
+    public void setUserDao(UserDao userDao) {
+        System.out.println("setUserDao: " + userDao);
+        this.userDao = userDao;
+    }*/
+
+    public IUserDao getUserDao() {
+        return uDao;
+    }
+}
+```
+
+需要说明Value注解使用的时候, 需要添加配置文件, config.properties
+
+```xml
+metaData = imooc.com
+```
+
+同时要在ApplicationContext.xml中说明读取该配置文件
+
+```xml
+<!--通知Spring IoC容器初始化时加载属性文件-->
+<context:property-placeholder location="classpath:config.properties"/>
+```
+
+调用的时候需要${}的格式, 输入完整key
+
+```java
+@Value("${metaData}")
+```
+
+输出
+
+```
+UserDao constructor com.imooc.spring.dao.UserDao@17776a8
+UserOracleDao constructor com.imooc.spring.dao.UserOracleDao@69a10787
+UserService constructor com.imooc.spring.service.UserService@70b0b186
+UserService: init method, metaData = imooc.com
+com.imooc.spring.dao.UserOracleDao@69a10787
+com.imooc.spring.dao.UserOracleDao@69a10787
+```
+
+* @Value注解
+
+```java
+@Value("imooc.com")
+private String metaData;
+
+private String metaData = "imooc.com"
+```
+
+两者有什么区别? 直接赋值的执行效率比运行时反射效率还要高
+
+主要用处是在读取配置文件中的信息
+
+@Value的运行过程和@Autowired@Resource相同, 都是在运行过程中private修改为public, 赋值后再修改回private
+@Value读取信息的三个步骤: 1.创建配置文件, 创建键值对;2.ApplicationContext中声明,加载对应的配置文件;3.调用注解${}
+
+@Value的使用广泛, 数据库连接时的url, driver, pwd, username都可以设置, 一般通过前缀说明属性的作用或者访问方位, 例如:`connection.driver`
+
+---
+
+鱼和熊掌:
+
+xml不需要修改源代码, 但是配置繁琐
+
+注解书写方便, 但是写在了源代码中
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+##  Java Config
 
 
 
