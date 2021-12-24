@@ -58,7 +58,21 @@ IOC对象的实例化
 
 
 
+## s07
 
+注解
+
+
+
+## s08
+
+Java config
+
+
+
+## s09
+
+Spring test与Junit4
 
 
 

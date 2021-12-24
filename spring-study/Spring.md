@@ -2591,17 +2591,155 @@ public UserService userService(UserDao userDao, EmployeeDao employeeDao) {
 }
 ```
 
+## Spring Test
+
+* Spring Test是Spring中用于测试的模块
+* Spring Test对JUnit单元测试框架有良好的整合
+* 通过Spring Test可在Unit在单元测试时自动初始化IoC容器
+
+基于注解来完成
+
+### 整合过程
+
+1. Maven工程依赖spring-test
+2. 利用@RunWith与@ContextConfiguration描述测试用例类
+   * @RunWith: 将Junit4的运行过程交给Spring来完成, 该注解让Spring接管Junit4的控制权, 完成IOC的初始化工作
+   * @ContextConfiguratoin: 初始化IOC容器过程中, 加载哪个配置文件
+3. 测试用例类从容器获取对象完成测试用例的执行
+
+---
+
+1. pom依赖
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>s09</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.2.6.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>5.2.6.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>
+```
+
+2. Bean
+
+```Java
+import com.imooc.spring.ioc.dao.UserDao;
+public class UserService {
+
+    private UserDao userDao;
+
+    public void createUser() {
+        System.out.println("create user");
+        userDao.insert();
+    }
 
 
+    public UserDao getUserDao() {
+        return userDao;
+    }
+
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
+    }
+}
+```
+
+```Java
+package com.imooc.spring.ioc.dao;
+
+public class UserDao {
+
+    public void insert() {
+        System.out.println("insert one record");
+    }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="userDao" class="com.imooc.spring.ioc.dao.UserDao"/>
 
 
+    <bean id="userService" class="com.imooc.spring.ioc.service.UserService">
+        <property name="userDao" ref="userDao"/>
+    </bean>
+
+</beans>
+```
+
+3. Spring Test与Junit4整合
+
+test:
+
+```Java
+import com.imooc.spring.ioc.service.UserService;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import javax.annotation.Resource;
 
 
+//将Junit4的执行权交由Spring Test,在测试用例执行前自动初始化IoC容器
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"classpath:applicationContext.xml"})
+public class SpringTestor {
 
+    //IOC初始化过程中创建好了
+    @Resource
+    private UserService userService;
 
+    @Test
+    public void testUserService() {
+        userService.createUser();
+    }
+}
+```
 
+输出:
 
-
+```
+create user
+insert one record
+```
 
 
 
