@@ -1699,13 +1699,9 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 * 利用反射基础实例化对象
 * 调用set方法设置属性(组装setMethodName, invoke)
 
-## 基于注解与Java Config配置IoC容器
+## 基础注解配置IOC容器
 
 配置方式的不同, xml, 注解, java Config底层原理一致
-
-
-
-### 基础注解配置IOC容器
 
 优势: 
 
@@ -1719,7 +1715,7 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 * 自动装配注解-根据属性特征自动注入对象
 * 元数据注解-更细化的辅助loC容器管理对象的注解
 
-#### 四种组件类型注解
+### 四种组件类型注解
 
 | 注解        | 说明                                                        |
 | ----------- | ----------------------------------------------------------- |
@@ -1830,10 +1826,268 @@ org.springframework.context.event.internalEventListenerProcessor: org.springfram
 org.springframework.context.event.internalEventListenerFactory: org.springframework.context.event.DefaultEventListenerFactory@4b9e255
 ```
 
-#### 两类自动装配注解
+### 两类自动装配注解
+
+#### 自动装配分类
 
 自动装配: IOC容器在运行过程中自动为某个属性赋值
 
+<img src="img/Spring/image-20211224101102432.png" alt="image-20211224101102432" style="zoom:67%;" />
+
+* 按类型装配:
+  * @Autowired: 按容器内对象类型动态注入属性，由Spring机构提供, spring自己定义的规则
+  * @Inject: 基于JSR-330(Dependency Injection for Java)标准,其他同@Autowired,但不支持required属性,java的行业标准
+
+* 按名称装配:
+  * @Named: 与@Inject配合使用，JSR-330规范，按属性名自动装配
+  * @Resource: 基于JSR-250规范，优先按名称、再按类型智能匹配
+
+---
+
+#### 例子
+
+* 按名称注入的例子:
+
+book-shop中, serivce中引用bookDao, 使用bean的id(名称)动态注入到其他属性中
+
+```xml
+<bean id="bookService" class="com.imooc.spring.ioc.bookshop.service.BookService">
+    <!-- id=bookDao, 由另一位开发者开发 -->
+    <property name="bookDao" ref="bookDao"/>
+</bean>
+```
+
+* 按类型装配指的是, 不关心bean的名称是什么, 只需要在运行过程中为属性进行注入时, 把与属性相同类型的对象做注入
+
+---
+
+#### 代码演示
+
+Controller依赖于Service, Service依赖于Dao
+
+##### @Autowired
+
+service依赖于dao
+
+1. service中
+
+```java
+import com.imooc.spring.dao.UserDao;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+    @Autowired
+    private UserDao userDao;
+
+    public UserService() {
+        System.out.println("UserService constructor " + this);
+    }
+
+    public void setUserDao(UserDao userDao) {
+        System.out.println("setUserDao: " + userDao);
+        this.userDao = userDao;
+    }
+    public UserDao getUserDao() {
+        return userDao;
+    }
+}
+```
+
+使用Autowired
+
+2. dao中
+
+```java
+package com.imooc.spring.dao;
+
+import org.springframework.stereotype.Repository;
+
+/**
+ * CRUD
+ * 组件类型注解默认beanId为类名首字母小写userDao
+ *
+ */
+@Repository
+public class UserDao {
+    public UserDao() {
+        System.out.println("UserDao constructor " + this);
+    }
+}
+```
+
+3. 初始化IOC容器
+
+```java
+ApplicationContext context =
+                new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+```
+
+输出
+
+```
+UserDao constructor com.imooc.spring.dao.UserDao@df27fae
+UserService constructor com.imooc.spring.service.UserService@24a35978
+```
+
+预期的有初始化和set方法, 但是set方法没有出现, 对象没有注入么?
+
+提取userService然后调用get方法, 查看输出
+
+```java
+UserService userService = context.getBean("userService", UserService.class);
+System.out.println(userService.getUserDao());
+```
+
+```
+UserDao constructor com.imooc.spring.dao.UserDao@df27fae
+UserService constructor com.imooc.spring.service.UserService@24a35978
+com.imooc.spring.dao.UserDao@df27fae
+```
+
+打印输出后发现, udao是有数据的, 就是原始初始化的UserDao(@df27fae), 那为什么没有调用set方法完成注入的工作?
+
+4. 做个实验, 将autowired放在set方法上
+
+```java
+@Autowired
+public void setUserDao(UserDao userDao) {
+    System.out.println("setUserDao: " + userDao);
+    this.userDao = userDao;
+}
+```
+
+输出:
+
+```
+UserDao constructor com.imooc.spring.dao.UserDao@fcd6521
+UserService constructor com.imooc.spring.service.UserService@31f924f5
+setUserDao: com.imooc.spring.dao.UserDao@fcd6521
+com.imooc.spring.dao.UserDao@fcd6521
+```
+
+可以看到set方法输出了, 在set方法上增加autowired注解和在属性名上增加autowired注解都可以完成对象的注入
+
+但是一个执行了set方法, 一个没有执行, 两个机制完全不同. ***重要!!!***
+
+* 如果装配注解Autowired放在set方法上，则自动按类型/名称对set方法参数进行注入. IOC容器会自动将容器中类型为UserDao的对象注入到set参数userDao中, 然后执行代码
+
+* 如果装配注解Autowired放在属性上,  Spring Ioc容器会自动通过反射技术将属性private修饰符自动改为public,直接进行赋值, 不再执行set方法. 在运行时动态完成
+
+所以如果注解Autowired放在属性上, 我们就不需要set方法了
+
+---
+
+Autowired本身的问题
+
+Autowired是按照类型装配, -**在工作中不推荐进行类型装配**, 演示案例如下:
+
+1. dao包下新建接口IUserDao, 同时两个实现类, UserDao和UserOracleDao(后续开发中数据库要迁移, 新建实现类)
+
+```java
+public interface IUserDao {
+}
+```
+
+```java
+import org.springframework.stereotype.Repository;
+
+/**
+ * CRUD
+ * 组件类型注解默认beanId为类名首字母小写userDao
+ *
+ */
+@Repository
+public class UserDao implements IUserDao {
+    public UserDao() {
+        System.out.println("UserDao constructor " + this);
+    }
+}
+```
+
+```java
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class UserOracleDao implements IUserDao {
+    public UserOracleDao() {
+        System.out.println("UserOracleDao constructor " + this);
+    }
+}
+```
+
+
+2. Service中的对象就要修改为IUserDao
+
+按照面向对象的要求, 属性要变成接口private IUserDao uDao;
+
+```java
+import com.imooc.spring.dao.IUserDao;
+import com.imooc.spring.dao.UserDao;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+
+    // @Autowired
+    // Spring Ioc容器会自动通过反射技术将属性private修饰符自动改为public,直接进行赋值
+    // 不再执行set方法
+    // private UserDao userDao;
+
+    @Autowired
+    private IUserDao uDao;
+
+    public UserService() {
+        System.out.println("UserService constructor " + this);
+    }
+
+    /*@Autowired
+    // 如果装配注解Autowired放在set方法上，则自动按类型/名称对set方法参数进行注入
+    public void setUserDao(UserDao userDao) {
+        System.out.println("setUserDao: " + userDao);
+        this.userDao = userDao;
+    }*/
+
+    public IUserDao getUserDao() {
+        return uDao;
+    }
+}
+```
+
+3. 运行后报错
+
+```
+Caused by: org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type 'com.imooc.spring.dao.IUserDao' available: expected single matching bean but found 2: userDao,userOracleDao
+```
+
+可以发现是因为容器中发现了两个匹配的bean, 注入失败
+
+因为autowired是按类型注入, IUserDao接口, IOC容器在当前容器中查询有哪些bean的类型是IUserDao, 发现有两个对象都实现了IUserDao, 分别是UserDao和UserOracleDao, IOC容器并不清楚要将哪个bean注入到当前的udao属性, 报错
+
+4. 解决方法
+
+* 去除某一个@Repository注解即可, 对应Dao就不会被IOC容器管理
+* IOC容器中出现多个相同的对象, 添加`@Primary`注解, 默认采用该注解注入
+
+这样子就解决问题了
+
+根本原因是在IOC容器中可能出现多个相同类型的对象, 会出现这种问题
+
+为了避免这种问题, 在实际项目中, 多采用按照名称注入的方法, 因为名称在容器中是唯一的
+
+
+
+
+
+##### @Inject
+
+
+
+
+
+##### @Named
 
 
 
@@ -1841,12 +2095,7 @@ org.springframework.context.event.internalEventListenerFactory: org.springframew
 
 
 
-
-
-
-
-
-
+##### @Resource
 
 
 
