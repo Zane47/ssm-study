@@ -2741,20 +2741,15 @@ create user
 insert one record
 ```
 
+## 总结
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+* Spring快速入门
+* Spring XML配置
+* 对象实例化配置
+* 依赖注入配置
+* Spring注解配置
+* Java Config配置
+* Spring 单元测试
 
 # Spring AOP
 
