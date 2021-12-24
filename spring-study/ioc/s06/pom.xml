@@ -21,12 +21,14 @@
             <version>1.18.12</version>
         </dependency>
 
+        <!-- java的xml解析文件, dom4j底层依赖jaxen -->
         <dependency>
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
             <version>2.1.1</version>
         </dependency>
 
+        <!-- Xpath表达式解释器 -->
         <dependency>
             <groupId>jaxen</groupId>
             <artifactId>jaxen</artifactId>

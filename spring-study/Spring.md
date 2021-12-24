@@ -1558,15 +1558,146 @@ destroy
 
 s06
 
+1. applicationContext.xml文件
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+    <bean id="sweetApple" class="com.imooc.spring.ioc.entity.Apple">
+        <property name="title" value="红富士"/>
+        <property name="color" value="red"/>
+        <property name="origin" value="eur"/>
+    </bean>
+</beans>
+```
 
+2. Apple类, 后续要实例化的类
 
+```java
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
+public class Apple {
+    private String title;
+    private String color;
+    // 产地
+    private String origin;
+    private double price;
 
+    public Apple() {
+        System.out.println("apple 对象已创建" + this);
+    }
+    public Apple(String title, String color, String origin) {
+        this.title = title;
+        this.color = color;
+        this.origin = origin;
+        System.out.println("带参数的构造函数创建对象: " + this);
+        System.out.println(this.title + " " + this.color + " " + this.origin);
+    }
 
+    public Apple(String title, String color, String origin, double price) {
+        this.title = title;
+        this.color = color;
+        this.origin = origin;
+        this.price = price;
+        System.out.println("带参数的构造函数创建对象: " + this);
+        System.out.println(this.title + " " + this.color + " " + this.origin + " " + this.price);
+    }
+}
+```
 
+3. ApplicatoinContext接口:
 
+```java
+public interface ApplicationContext {
 
+    public Object getBean(String beanId);
+
+}
+```
+
+4. ClassPathXmlApplicationContext实现接口
+
+```java
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 理解成, 每一个ClassPathXmlApplicationContext都对应一个IOC容器
+ * 使用Map保存beanId和对象之间的关系
+ */
+public class ClassPathXmlApplicationContext implements ApplicationContext {
+    // IOC容器
+    private Map iocContainer = new HashMap();
+
+    /**
+     * 默认构造方法
+     * 读取配置文件
+     */
+    public ClassPathXmlApplicationContext() {
+        try {
+            String filePath = this.getClass().getResource("/applicationContext.xml").getPath();
+            // 地址如果有中文, 需要url解码, 担心找不到
+            filePath = URLDecoder.decode(filePath, "UTF-8");
+
+            // 解析xml文件, 依赖org.dom4j和jaxen
+            SAXReader reader = new SAXReader();
+            // 保存xml文件内容
+            Document document = reader.read(new File(filePath));
+            List<Node> beans = document.getRootElement().selectNodes("bean");
+            for (Node node : beans) {
+                Element element = (Element) node;
+                String id = element.attributeValue("id");
+                String className = element.attributeValue("class");
+                // 反射, 实例化对象
+                Class c = Class.forName(className);
+                Object obj = c.newInstance();
+
+                // 获取到对象之后, 设置属性
+                List<Node> properties = element.selectNodes("property");
+                for (Node p : properties) {
+                    Element property = (Element) p;
+                    String name = property.attributeValue("name");
+                    String value = property.attributeValue("value");
+
+                    String setMethodName = "set" + name.substring(0, 1).toUpperCase()
+                            + name.substring(1);
+                    System.out.println("ready for " + setMethodName + " 注入获取");
+                    Method setMethod = c.getMethod(setMethodName, String.class);
+                    setMethod.invoke(obj, value);
+                }
+                iocContainer.put(id, obj);
+            }
+            System.out.println("iocContainer: " + iocContainer);
+            System.out.println("ioc initial complete");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Object getBean(String beanId) {
+        return iocContainer.get(beanId);
+    }
+}
+```
+
+* 使用map存储IOC容器
+* 使用org.dom4j和jaxen解析xml文件内容
+* 利用反射基础实例化对象
+* 调用set方法设置属性(组装setMethodName, invoke)
 
 
 
