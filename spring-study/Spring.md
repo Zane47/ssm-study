@@ -1701,7 +1701,7 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 
 ## 基础注解配置IOC容器
 
-配置方式的不同, xml, 注解, java Config底层原理一致
+上文是基于xml的配置, 虽然配置方式的不同, 基于xml, 注解, java Config底层原理一致
 
 优势: 
 
@@ -2076,6 +2076,7 @@ Caused by: org.springframework.beans.factory.NoUniqueBeanDefinitionException: No
 
 * 去除某一个@Repository注解即可, 对应Dao就不会被IOC容器管理
 * IOC容器中出现多个相同的对象, 添加`@Primary`注解, 默认采用该注解注入
+* @Resource注解
 
 这样子就解决问题了
 
@@ -2189,7 +2190,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 @Service
-@Scope("prototype")// 设置单例/多丽, xml中的bean scope相同
+@Scope("prototype")// 设置单例/多例, xml中的bean scope相同
 public class UserService {
     @Value("${metaData}") // 读取config.properties的metaData属性值
     private String metaData;
@@ -2277,11 +2278,333 @@ xml不需要修改源代码, 但是配置繁琐
 
 注解书写方便, 但是写在了源代码中
 
+##  基于Java Config配置IOC容器
+
+使用Java类替代传统的xml文件
+
+优势:
+
+* 完全摆脱XML的束缚，使用独立Java类管理对象与依赖
+* 注解配置相对分散，利用Java Config可对配置集中管理
+* 可以在编译时进行依赖检查(Java源代码, ide检查)，不容易出错. xml中都是在运行中检查
+
+劣势:
+
+* Java源代码, 修改后需要重新编译再发布
+
+多用于敏捷开发, 快迭代, SpringBoot默认基于Java Config配置
+
+### Java Config核心注解
+
+| 注解            | 说明                                                         |
+| --------------- | ------------------------------------------------------------ |
+| @Configuration  | 描述类，说明当前类是Java Config配置类，完全替代XML文件       |
+| @Bean           | 描述**方法**，方法返回对象将被loC容器管理，beanld默认为方法名 |
+| @ImportResource | 描述类，加载静态文件，可使用@Value注解获取                   |
+| @ComponentScan  | 描述类，同XML的`<context:compoment-scan>`标签                |
+
+### Java Config实例化
+
+1. 新增Config.java文件, 替代原先的ApplicationContext.xml
+
+```java
+import com.imooc.spring.dao.UserDao;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * java config, config类替代xml文件
+ */
+@Configuration// 当前类是一个配置类, 用于替代applicationContext.xml
+public class Config {
+
+    // Java Config利用方法创建对象，将方法返回对象放入容器，beanId=方法名
+    // <bean id="XXX" class="XXX"
+    @Bean
+    public UserDao userDao() {
+        // 使用new关键字完成创建
+        // 不要把这里看成是工程的一部分, 把他当成一个配置文件, 在userDao方法内部用来构建对象
+        UserDao userDao = new UserDao();
+        return userDao;
+    }
+}
+```
+
+* 需要添加@Configuration注解
+
+* 为什么还是new?
+  不要把这里看成是工程的一部分, 把他当成一个配置文件, 在userDao方法内部用来构建对象
+
+2. 启动类, SpringApplication
+
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class SpringApplication {
+    public static void main(String[] args) {
+        // 基于注解配置的应用程序上下文
+        // 基于Java Config配置IOC容器的初始化
+        ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+
+        String[] ids = context.getBeanDefinitionNames();
+        for (String id : ids) {
+            System.out.println(id + ": " + context.getBean(id));
+        }
+    }
+}
+```
+
+输出:
+
+```
+org.springframework.context.annotation.internalConfigurationAnnotationProcessor: org.springframework.context.annotation.ConfigurationClassPostProcessor@3d3fcdb0
+org.springframework.context.annotation.internalAutowiredAnnotationProcessor: org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor@641147d0
+org.springframework.context.annotation.internalCommonAnnotationProcessor: org.springframework.context.annotation.CommonAnnotationBeanPostProcessor@6e38921c
+org.springframework.context.event.internalEventListenerProcessor: org.springframework.context.event.EventListenerMethodProcessor@64d7f7e0
+org.springframework.context.event.internalEventListenerFactory: org.springframework.context.event.DefaultEventListenerFactory@27c6e487
+config: com.imooc.spring.ioc.Config$$EnhancerBySpringCGLIB$$9ddf0940@49070868
+userDao: com.imooc.spring.ioc.dao.UserDao@6385cb26
+```
+
+两个重要的对象
+
+```
+config: com.imooc.spring.ioc.Config$$EnhancerBySpringCGLIB$$9ddf0940@49070868
+userDao: com.imooc.spring.ioc.dao.UserDao@6385cb26
+```
+
+### Java Config依赖注入
+
+Service依赖于Dao, Controller依赖于Service
+
+那么在Config中设置Bean的时候, 传入参数, 例如:
+
+```java
+@Bean
+public UserService userService(UserDao userDao) {
+    UserService userService = new UserService();
+    userService.setUserDao(userDao);   
+    return userService;
+}
+```
+
+参数增加userDao, 那么在容器初始化的时候, 就会先创建bean: userDao, 然后在执行userService方法的时候发现需要注入参数userDao, 参数名和bean id相同, 所以自动把userDao创建的bean放到参数中, 执行下面代码
+
+整体的代码:
+
+```java
+import com.imooc.spring.ioc.controller.UserController;
+import com.imooc.spring.ioc.dao.UserDao;
+import com.imooc.spring.ioc.service.UserService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
+
+/**
+ * java config, config类替代xml文件
+ */
+@Configuration// 当前类是一个配置类, 用于替代applicationContext.xml
+public class Config {
+
+    // Java Config利用方法创建对象，将方法返回对象放入容器，beanId=方法名
+    // <bean id="XXX" class="XXX"
+    @Bean
+    public UserDao userDao() {
+        // 使用new关键字完成创建
+        // 不要把这里看成是工程的一部分, 把他当成一个配置文件, 在userDao方法内部用来构建对象
+        UserDao userDao = new UserDao();
+        System.out.println("UserDao create: " + userDao);
+        return userDao;
+    }
+
+
+    @Bean
+    public UserService userService(UserDao userDao) {
+        UserService userService = new UserService();
+        System.out.println("userService create: " + userService);
+        userService.setUserDao(userDao);
+        System.out.println("userService.setUserDao: " + userDao);
+        return userService;
+    }
+
+    @Bean
+    public UserController userController(UserService userService) {
+        UserController userController = new UserController();
+        System.out.println("userController create: " + userController);
+        userController.setUserService(userService);
+        System.out.println("userController.setUserService: " + userService);
+        return userController;
+    }
+}
+```
+
+输出: 初始化IOC容器后做个分割
+
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class SpringApplication {
+    public static void main(String[] args) {
+        // 基于注解配置的应用程序上下文
+        // 基于Java Config配置IOC容器的初始化
+        ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+
+        System.out.println("==============");
+
+        String[] ids = context.getBeanDefinitionNames();
+        for (String id : ids) {
+            System.out.println(id + ": " + context.getBean(id));
+        }
+    }
+}
+```
+
+```
+UserDao create: com.imooc.spring.ioc.dao.UserDao@1dd02175
+userService create: com.imooc.spring.ioc.service.UserService@16267862
+userService.setUserDao: com.imooc.spring.ioc.dao.UserDao@1dd02175
+userController create: com.imooc.spring.ioc.controller.UserController@6166e06f
+userController.setUserService: com.imooc.spring.ioc.service.UserService@16267862
+==============
+org.springframework.context.annotation.internalConfigurationAnnotationProcessor: org.springframework.context.annotation.ConfigurationClassPostProcessor@51931956
+org.springframework.context.annotation.internalAutowiredAnnotationProcessor: org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor@2b4a2ec7
+org.springframework.context.annotation.internalCommonAnnotationProcessor: org.springframework.context.annotation.CommonAnnotationBeanPostProcessor@564718df
+org.springframework.context.event.internalEventListenerProcessor: org.springframework.context.event.EventListenerMethodProcessor@51b7e5df
+org.springframework.context.event.internalEventListenerFactory: org.springframework.context.event.DefaultEventListenerFactory@18a70f16
+config: com.imooc.spring.ioc.Config$$EnhancerBySpringCGLIB$$dd8fc29a@62e136d3
+userDao: com.imooc.spring.ioc.dao.UserDao@1dd02175
+userService: com.imooc.spring.ioc.service.UserService@16267862
+userController: com.imooc.spring.ioc.controller.UserController@6166e06f
+```
+
+可以看到创建UserDao, 然后创建UserService, set其中的UserDao(1dd02175), controller中也一样, 注入Service. 可以看到注入的和创建的是同一个对象
+
+---
+
+setter是在运行中注入的, 那么是按照类型注入的, 还是按照名称注入的?
+
+先按name尝试注入，name不存在则按类型注入
+
+Service的setter中参数是userDao, 正好上面的bean name也是userDao, 可以注入
+
+如果修改参数名称为uDao, 那么不会报错, 但是如果要创建多个UserDao类型, 会报错:
+
+```java
+@Bean
+public UserDao userDao() {
+    // 使用new关键字完成创建
+    // 不要把这里看成是工程的一部分, 把他当成一个配置文件, 在userDao方法内部用来构建对象
+    UserDao userDao = new UserDao();
+    System.out.println("UserDao create: " + userDao);
+    return userDao;
+}
+
+@Bean
+// @Primary
+public UserDao userDao1() {
+    // 使用new关键字完成创建
+    // 不要把这里看成是工程的一部分, 把他当成一个配置文件, 在userDao方法内部用来构建对象
+    UserDao userDao = new UserDao();
+    System.out.println("UserDao create: " + userDao);
+    return userDao;
+}
+
+@Bean
+public UserService userService(UserDao udao) {
+    UserService userService = new UserService();
+    System.out.println("userService create: " + userService);
+    userService.setUserDao(udao);
+    System.out.println("userService.setUserDao: " + udao);
+    return userService;
+}
+```
+
+这里程序就不知道根据类型注入的时候, 需要注入哪个bean了
+
+```
+Caused by: org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type 'com.imooc.spring.ioc.dao.UserDao' available: expected single matching bean but found 2: userDao,userDao1
+```
+
+当然可以添加@Primary的注解来解决该问题
+
+---
+
+### Java Config与注解
+
+1. Java Config与注解是不冲突的, 例如@Primary, @Scope等注解可以在Java Config中使用
+
+```java
+@Bean
+@Scope("prototype")
+public UserController userController(UserService userService) {
+    UserController userController = new UserController();
+    System.out.println("userController create: " + userController);
+    userController.setUserService(userService);
+    System.out.println("userController.setUserService: " + userService);
+    return userController;
+}
+```
+
+2. Config中添加@ComponentScan
+
+添加@ComponentScan注解, 
+
+```java
+@Configuration// 当前类是一个配置类, 用于替代applicationContext.xml
+@ComponentScan(basePackages = "com.imooc")
+public class Config {}
+```
+
+IOC容器不仅加载config中的对象, 还会去指定路径下扫描指定的类
+
+例如另外一位开发人员习惯了注解方法, 在dao下, 
+
+```java
+@Repository
+public class EmployeeDao {
+    public EmployeeDao() {
+        System.out.println("EmployeeDao create");
+    }
+}
+```
+
+那么因为Config中添加了@ComponentScan(...), 指定扫描, 也会初始化实例到IOC容器中
+
+```
+EmployeeDao create com.imooc.spring.ioc.dao.EmployeeDao@345965f2
+```
+
+如果需要注入的话, 也一样在Java Config中添加参数即可.例如在UserService需要引入EmployeeDao
+
+```java
+@Bean
+public UserService userService(UserDao userDao, EmployeeDao employeeDao) {
+    UserService userService = new UserService();
+    System.out.println("userService create: " + userService);
+    userService.setUserDao(userDao);
+    System.out.println("userService.setUserDao: " + userDao);
+    userService.setEmployeeDao(employeeDao);
+    System.out.println("userService.employeeDao: " + employeeDao);
+    return userService;
+}
+```
 
 
 
 
-##  Java Config
+
+
+
+
+
+
+
+
+
+
+
 
 
 
