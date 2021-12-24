@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 
 @Service
-@Scope("prototype")// 设置单例/多丽, xml中的bean scope相同
+@Scope("prototype")// 设置单例/多例, xml中的bean scope相同
 public class UserService {
 
     @Value("${metaData}") // 读取config.properties的metaData属性值
