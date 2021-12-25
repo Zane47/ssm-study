@@ -10,6 +10,6 @@ public class SpringApplication {
                 new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
         UserService userService = context.getBean("userService", UserService.class);
         userService.createUser();
-
+        userService.generateRandomPassword("type", 3);
     }
 }

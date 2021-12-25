@@ -2995,7 +2995,105 @@ UserService, createUser()
 insert one record to User
 ```
 
+---
+
+AOP的配置过程:
+
+1. pom依赖AspectJ
+2. 实现切面类和方法. Class MethodAspect, JoinPoint
+3. xml中配置切面类, [aop conf](https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#xsd-schemas-aop)
+
+4. 定义pointCut, 当前的切面作用在哪些类的哪些方法上
+5. 配置Advice, 配置通知, before: 前置通知
+
 ## AOP关键概念
+
+### Spring AOP和AspectJ的关系
+
+* Eclipse AspectJ,一种基于Java平台的面向切面编程的语言
+
+* Spring AOP使用AspectJWeaver实现**类与方法匹配**
+  引入aspectjweaver -> xml文件中定义aop:point execution表达式, 在哪些类的哪些方法. 这个范围圈定的过程就是依赖于aspectjweaver
+
+* Spring AOP利用**代理技术**实现对象**运行时功能扩展**
+
+几个关键概念:
+
+| 注解                | 说明                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| Aspect              | 1. 切面，具体的可插拔组件功能类，通常一个切面只实现一个通用功能, <br />2. 本质上就是一个标准的类, 在切面类上定义切面方法(具体的功能扩展)<br />3. `public void printExecTime(JoinPoint joinPoint)`返回值是void/Object, 重要的是参数joinPoint连接点, 通过连接点可以获取目标类/方法的信息 |
+| Target Class/Method | 目标类、目标方法，指真正要执行与业务相关的方法<br />之前例子中类中的create, insert方法<br />切面就是对这些目标方法进行增强 |
+| PointCut            | 切入点(切点)，使用execution表达式说明切面要作用在系统的哪些类上 |
+| JoinPoint           | 连接点，切面运行过程中是包含了目标类/方法元数据的对象        |
+| Advice              | 通知，说明具体的切面的执行时机，Spring包含了五种不同类型通知 |
+
+AOP配置:
+
+```xml
+<!-- IOC配置 -->
+<bean id="methodAspect" class="com.imooc.spring.aop.aspect.MethodAspect"/>
+
+<!-- PointCut 切点,
+        使用execution表达式描述切面的作用范围: pointCut作用在哪些类的哪些方法上 -->
+<!-- execution(public * com.imooc..*.*(..)) 说明切面作用在com.imooc包下的所有类的所有方法上 -->
+<aop:config>
+    <aop:pointcut id="pointcut" expression="execution(public * com.imooc..*.*(..))"/>
+
+    <!-- aop:aspect: 定义切面类 -->
+    <aop:aspect ref="methodAspect">
+        <!-- before, 前置通知(Advice),
+            代表在目标方法运行前先执行methodAspect.printExecutionTime()
+             他的作用范围是由pointcut中的expression表达式决定的 -->
+        <aop:before method="printExecTime" pointcut-ref="pointcut"/>
+    </aop:aspect>
+</aop:config>
+```
+
+切点pointcut: expression决定了在什么地方, 哪些类的那些方法
+
+通知, before: 决定什么时间
+
+method决定了做什么事情
+
+### JoinPoint核心方法
+
+JoinPoint用于获取目标类和方法的相关信息
+
+| 注解                     | 说明                                  |
+| ------------------------ | ------------------------------------- |
+| Object getTarget()       | 获取IoC容器内目标对象 -> 得到对应的类 |
+| Signature getSignature() | 获取目标方法                          |
+| Object[] getArgs()       | 获取目标方法参数                      |
+
+```java
+// 获取目标类的名称
+String className = joinPoint.getTarget().getClass().getName();
+// 获取方法名称
+String methodName = joinPoint.getSignature().getName();
+// 获取参数列表
+Object[] args = joinPoint.getArgs();
+```
+
+调用
+
+```java
+userService.generateRandomPassword("type", 3);
+```
+
+输出
+
+```
+---->2021-12-25 20:19:57 347:com.imooc.spring.aop.service.UserService.generateRandomPassword
+---->参数个数: 2
+---->参数: type
+---->参数: 3
+按type方式生成3位随机密
+```
+
+
+
+
+
 
 
 

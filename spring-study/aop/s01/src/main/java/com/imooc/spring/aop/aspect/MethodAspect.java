@@ -20,8 +20,12 @@ public class MethodAspect {
 
         System.out.println("---->" + now + ":" + className + "." + methodName);
 
-
-
+        // 获取参数列表
+        Object[] args = joinPoint.getArgs();
+        System.out.println("---->参数个数: " + args.length);
+        for (Object arg : args) {
+            System.out.println("---->参数: " + arg);
+        }
     }
 
 
