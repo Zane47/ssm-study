@@ -3256,6 +3256,8 @@ insert one record to User
 <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
 ```
 
+### 五种通知类型
+
 
 
 
