@@ -32,7 +32,29 @@
         使用execution表达式描述切面的作用范围: pointCut作用在哪些类的哪些方法上 -->
     <!-- execution(public * com.imooc..*.*(..)) 说明切面作用在com.imooc包下的所有类的所有方法上 -->
     <aop:config>
-        <aop:pointcut id="pointcut" expression="execution(public * com.imooc..*.*(..))"/>
+        <!-- <aop:pointcut id="pointcut" expression="execution(public * com.imooc..*.*(..))"/>-->
+
+        <!-- 只输出service的时间, 类名符合xxxService即可 -->
+        <!-- <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>-->
+
+        <!-- 只对没有任何返回值的输出 -->
+        <!-- <aop:pointcut id="pointcut" expression="execution(void com.imooc..*Service.*(..))"/>-->
+
+        <!-- 只返回String返回值的输出 -->
+        <!-- <aop:pointcut id="pointcut" expression="execution(String com.imooc..*Service.*(..))"/>-->
+
+        <!-- 只返回XXXService类中的create开头的方法 -->
+        <!-- <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.create*(..))"/>-->
+
+        <!-- 捕获无参数的方法-->
+        <!-- <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*())"/>-->
+
+        <!-- 捕获两个参数的方法, *代表单个参数-->
+        <!-- <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(*,*))"/>-->
+
+        <!-- 规定第一个参数类型是String -->
+        <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(String,*))"/>
+
 
         <!-- aop:aspect: 定义切面类 -->
         <aop:aspect ref="methodAspect">
@@ -42,8 +64,6 @@
             <aop:before method="printExecTime" pointcut-ref="pointcut"/>
         </aop:aspect>
     </aop:config>
-
-
 
 
 </beans>

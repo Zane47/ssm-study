@@ -3090,22 +3090,171 @@ userService.generateRandomPassword("type", 3);
 按type方式生成3位随机密
 ```
 
+### PointCut切点表达式
 
+```xml
+<aop:pointcut id="pointcut" expression="execution(public * com.imooc..*.*(..))"/>
+```
 
+切点的作用: 告诉AOP当前切点在哪些类的哪些方法上生效, 规定应用范围
 
+一个完整方法的描述与excution的对应
 
+```
+          public void com.imooc.service.UserService.createUser(形参1,形参2,..)
 
+execution(public *    com.imooc ..       *        .  *         (..))
+去匹配com.imooc包下所有类的所有公共方法
+```
 
+![image-20211225213340005](img/Spring/image-20211225213340005.png)
 
+..: 包通配符, 下面所有层包
 
+(..): 参数通配符, 匹配任何形式, 不限个数的参数
 
+第一项public修饰符可以忽略, 调用的目标方法, 默认都是public
 
+---
 
+* 希望只在XXXService上打印系统的时间 
 
+1. 修改xml配置:
 
+```xml
+<!-- 只输出service的时间, 类名符合xxxService即可 -->
+<aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
+```
 
+2. 输出
 
+```
+---->2021-12-25 22:03:32 543:com.imooc.spring.aop.service.UserService.createUser
+---->参数个数: 0
+UserService, createUser()
+insert one record to User
+---->2021-12-25 22:03:32 562:com.imooc.spring.aop.service.UserService.generateRandomPassword
+---->参数个数: 2
+---->参数: type
+---->参数: 3
+按type方式生成3位随机密码
+```
 
+---
+
+* 希望只对没有任何返回值/String返回值的方法输出
+
+1. 修改xml
+
+```xml
+<!-- 只对没有任何返回值的输出 -->
+<aop:pointcut id="pointcut" expression="execution(void com.imooc..*Service.*(..))"/>
+<!-- 只返回String返回值的输出 -->
+<aop:pointcut id="pointcut" expression="execution(String com.imooc..*Service.*(..))"/>
+```
+
+2. 输出
+
+```
+---->2021-12-25 22:06:52 013:com.imooc.spring.aop.service.UserService.createUser
+---->参数个数: 0
+UserService, createUser()
+insert one record to User
+按type方式生成3位随机密码
+
+---
+UserService, createUser()
+insert one record to User
+---->2021-12-25 22:08:53 917:com.imooc.spring.aop.service.UserService.generateRandomPassword
+---->参数个数: 2
+---->参数: type
+---->参数: 3
+按type方式生成3位随机密码
+```
+
+```
+public String generateRandomPassword(String type, Integer length)返回值String
+```
+
+---
+
+* 希望对create开头的方法进行捕获
+
+1. 配置xml文件
+
+```xml
+<!-- 只返回XXXService类中的create开头的方法 -->
+<aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.create*(..))"/>
+```
+
+2. 输出
+
+```
+---->2021-12-25 22:10:46 411:com.imooc.spring.aop.service.UserService.createUser
+---->参数个数: 0
+UserService, createUser()
+insert one record to User
+按type方式生成3位随机密码
+```
+
+---
+
+* 捕获指定格式的参数
+
+捕获无参数的方法
+
+1. xml配置
+
+```xml
+<!-- 捕获无参数的方法-->
+<aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*())"/>
+```
+
+2.输出
+
+```
+---->2021-12-25 22:13:08 709:com.imooc.spring.aop.service.UserService.createUser
+---->参数个数: 0
+UserService, createUser()
+insert one record to User
+按type方式生成3位随机密码
+```
+
+捕获两个参数的方法
+
+1.xml配置
+
+```xml
+<!-- 捕获两个参数的方法, *代表单个参数-->
+<aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(*,*))"/>
+```
+
+2.输出
+
+```
+UserService, createUser()
+insert one record to User
+---->2021-12-25 22:15:05 048:com.imooc.spring.aop.service.UserService.generateRandomPassword
+---->参数个数: 2
+---->参数: type
+---->参数: 3
+```
+
+强制规定参数类型
+
+```xml
+<!-- 规定第一个参数类型是String -->
+<aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(String,*))"/>
+```
+
+---
+
+日常开发中, 最常用的是对指定类进行匹配, 通常不干预参数的数量和返回值, `也就是这种:
+
+```xml
+<!-- 只输出service的时间, 类名符合xxxService即可 -->
+<aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
+```
 
 
 
