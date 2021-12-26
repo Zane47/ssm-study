@@ -3,6 +3,7 @@ package com.imooc.spring.aop.service;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+// 静态代理是指必须手动创建代理类的代理模式使用方式
 public class UserServiceProxy implements UserService {
 
     // 持有委托类的对象
