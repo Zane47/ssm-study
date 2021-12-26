@@ -3612,17 +3612,192 @@ public Object check(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {}
 @AfterThrowing
 ```
 
-## AOP原理
+## Spring AOP实现原理
 
-### 静态代理和动态代理
+Spring基于代理模式实现功能动态扩展，包含两种形式：
 
-
-
-
-
+* 目标类拥有接口，通过JDK动态代理实现功能扩展
+* 目标类没有接口，通过CGLib组件实现功能扩展
 
 
 
+### 代理模式和静态代理
+
+#### 代理模式
+代理模式: 通过代理对象对原对象的实现功能扩展
+
+<img src="img/Spring/image-20211226105830681.png" alt="image-20211226105830681" style="zoom:67%;" />
+
+创建一个代理类, 代理中持有最原始的委托类. 代理类和委托类实现相同的接口, 客户类通过代理类实现相应的功能.
+
+---
+
+代码实现, 代理模式实现方法运行时间:
+
+代理类持有委托类, 再增加扩展的功能
+
+1. 接口UserService以及实现:
+
+```java
+package com.imooc.spring.aop.service;
+
+public interface UserService {
+    public void createUser();
+}
+```
+
+```Java
+package com.imooc.spring.aop.service;
+
+public class UserServiceImpl implements UserService {
+    @Override
+    public void createUser() {
+        System.out.println("create user");
+    }
+}
+```
+
+2. 代理类拓展委托类的方法:
+
+持有委托对象, 实现接口类, 对方法做拓展:
+
+```java
+package com.imooc.spring.aop.service;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class UserServiceProxy implements UserService {
+
+    // 持有委托类的对象
+    private final UserService userService;
+
+    public UserServiceProxy(UserService userService) {
+        this.userService = userService;
+    }
+
+    @Override
+    public void createUser() {
+        // 执行目标方法前, 打印目标方法的执行时间
+        System.out.println("======= " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()) + " =======");
+        userService.createUser();
+    }
+}
+
+```
+
+4. 输出:
+
+```java
+package com.imooc.spring.aop;
+import com.imooc.spring.aop.service.UserService;
+import com.imooc.spring.aop.service.UserServiceImpl;
+import com.imooc.spring.aop.service.UserServiceProxy;
+import com.imooc.spring.aop.service.UserServiceProxy1;
+public class Application {
+    public static void main(String[] args) {
+        /*UserService userService = new UserServiceImpl();
+        userService.createUser();*/
+
+        UserService userService = new UserServiceProxy(new UserServiceImpl());
+        userService.createUser();
+    }
+}
+```
+
+```
+======= 2021-12-26 11:13:21.632 =======
+create user
+```
+
+---
+
+* 这里为什么代理类中的构造参数是接口的某一个实现类? 可不可以直接写UserService的实现类
+
+```java
+public UserServiceProxy(UserService userService) {
+    this.userService = userService;
+}
+```
+
+可以, 但是不建议. 代理模式可以嵌套使用, 例如: 房东租房给二房东, 二房东再租给租客
+
+为了更好的功能拓展. 
+
+举例说明:
+
+1. 新增代理类UserServiceProxy1:
+
+实现不同的功能
+
+```java
+package com.imooc.spring.aop.service;
+public class UserServiceProxy1 implements UserService {
+
+    // 持有委托类的对象
+    private final UserService userService;
+    public UserServiceProxy1(UserService userService) {
+        this.userService = userService;
+    }
+    @Override
+    public void createUser() {
+        userService.createUser();
+        System.out.println("======" + "后置拓展功能" + "======");
+    }
+}
+
+```
+
+2. 在Application的调用中, 以嵌套的形式
+
+```java
+package com.imooc.spring.aop;`
+import com.imooc.spring.aop.service.UserService;
+import com.imooc.spring.aop.service.UserServiceImpl;
+import com.imooc.spring.aop.service.UserServiceProxy;
+import com.imooc.spring.aop.service.UserServiceProxy1;
+
+public class Application {
+    public static void main(String[] args) {
+        UserService userService = new UserServiceProxy1(new UserServiceProxy(new UserServiceImpl()));
+        userService.createUser();
+    }
+}
+```
+
+3. 输出
+
+```
+======= 2021-12-26 11:13:21.632 =======
+create user
+后置拓展功能
+```
+
+代理模式中, 所有的代理类和委托类都要实现相同的接口, 可以代理类的构造方法中传入接口的某个具体实现, 进而实现对功能的多层层次的扩展. 可以更好的通过嵌套的方式来拓展方法
+
+---
+
+#### 静态代理
+
+在上面, 没进行一次功能的扩展, 都需要自己创建一个代理类, 缺点: 随着功能的扩大, 每一个具体的实现类都
+
+
+
+
+
+
+
+
+
+
+
+### JDK动态代理
+
+
+
+
+
+### CGLib
 
 
 
