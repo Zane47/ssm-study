@@ -241,7 +241,7 @@ public class MyBatisUtils {
 2. 创建Mapper XML
 3. 编写`<select>` SQL标签
 4. 开启驼峰命名映射
-5. 新增<mapper>
+5. 新增`<mapper>`
 6. SqlSession执行select语句
 
 ### Mybatis数据查询具体实现
@@ -261,7 +261,7 @@ public class Goods {
     private Integer categoryId;
 }
 ```
-#### 2.创建Mapper XML
+#### 创建Mapper XML
 xml文件用来说明实体类和哪个表对应, 类属性和表中字段的对应映射关系
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -273,7 +273,7 @@ xml文件用来说明实体类和哪个表对应, 类属性和表中字段的对
 </mapper>
 ```
 
-#### 3.编写 < select > SQL标签
+#### 编写 < select > SQL标签
 ```xml
 <select id="selectAll" resultType="com.xiaofeng.mybatis.entity.Goods">
     select * from t_goods order by goods_id asc  limit 10
@@ -284,7 +284,7 @@ xml文件用来说明实体类和哪个表对应, 类属性和表中字段的对
 有可能有其他的selectAll, 例如category: selectAll
 * resultType: 返回的结果, sql语句执行之后, 将每条记录包装成对应对象(Goods)
 
-#### 4. 开启驼峰命名映射
+#### 开启驼峰命名映射
 https://mybatis.org/mybatis-3/zh/configuration.html#settings  
 是否开启驼峰命名自动映射，即从经典数据库列名 A_COLUMN 映射到经典 Java 属性名 aColumn。
 
@@ -295,7 +295,7 @@ https://mybatis.org/mybatis-3/zh/configuration.html#settings
 </settings>
 ```
 
-#### 5.新增< mapper >
+#### 新增< mapper >
 ```xml
 <!--mybatis-config.xml 下的configuration标签中添加这段代码-->
 <mappers>
