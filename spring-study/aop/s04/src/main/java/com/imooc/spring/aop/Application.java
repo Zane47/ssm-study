@@ -10,6 +10,11 @@ public class Application {
         /*UserService userService = new UserServiceImpl();
         userService.createUser();*/
 
+        UserService userService0 = new UserServiceProxy(new UserServiceImpl());
+        userService0.createUser();
+
+        System.out.println("=========");
+
         UserService userService = new UserServiceProxy1(new UserServiceProxy(new UserServiceImpl()));
         userService.createUser();
     }
