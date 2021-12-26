@@ -3286,7 +3286,7 @@ After Advice: 类似try catch, finally. 无论成功与否, 都会执行
 
 * 引介增强允许**在运行时**改变类的行为，让类随运行环境动态变更
 
-#### 使用
+#### 使用(三个标签)
 
 ##### after
 
@@ -3459,7 +3459,134 @@ Exception in thread "main" java.lang.RuntimeException: 用户已存在
 
 #### Around Advice
 
-利用AOP进行方法性能筛选
+利用AOP进行方法性能筛选, 方法开始前记录方法的执行时间, 方法结束后记录方法的结束时间, 作差记录过长的时间. 利用环绕通知, 控制运行方法的完整运行周期.
+
+可以使用环绕通知来实现上面的四种通知, 重点在于:
+
+1. 切面方法的返回值是Object, 返回目标方法的返回值
+
+```java
+public Object check(ProceedingJoinPoint proceedingJoinPoint)
+```
+
+2. 重要的参数ProceedingJoinPoint, 是JoinPoint的升级版，在原有功能外，还可以控制目标方法是否执行
+
+```java
+// 执行目标方法, 返回值为目标方法的返回值
+Object ret = proceedingJoinPoint.proceed();
+```
+
+---
+
+1. around的切面方法
+
+```java
+/**
+* ProceedingJoinPoint是JoinPoint的升级版，在原有功能外，还可以控制目标方法是否执行
+* 环绕通知可以完成之前的四种通知的所有工作
+*
+* 注意这里方法的返回值是Object, 将目标方法的返回值进行返回
+*/
+public Object check(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    try {
+        Long startTime = new Date().getTime();
+
+        // 执行目标方法, 返回值为目标方法的返回值
+        Object ret = proceedingJoinPoint.proceed();
+
+        Long endTime = new Date().getTime();
+
+        long duration = endTime - startTime;
+        if (duration >= 1000) {
+            String className = proceedingJoinPoint.getTarget().getClass().getName();
+            String methodName = proceedingJoinPoint.getSignature().getName();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            String now = sdf.format(new Date());
+            System.out.println("=====" + now + ":" + className + "." + methodName + "(" + duration +")");
+        }
+        return ret;
+    } catch (Throwable throwable) {
+        System.out.println("Exception Message: " + throwable.getMessage());
+        throw throwable;
+    }
+}
+```
+
+注意这里的:
+
+* 方法返回值Object
+
+* // 执行目标方法, 返回值为目标方法的返回值
+  Object ret = proceedingJoinPoint.proceed();
+
+2. xml中配置around
+
+```xml
+<aop:config>
+    <aop:pointcut id="pointcut" expression="execution(* com.imooc..*.*(..))"/>
+
+    <aop:aspect ref="methodChecker">
+        <!-- 环绕通知 -->
+        <aop:around method="check" pointcut-ref="pointcut"/>
+    </aop:aspect>
+</aop:config>
+```
+
+3. 手动延长createUser方法
+
+```java
+public void createUser() {
+    try {
+        Thread.sleep(3000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    System.out.println("UserService, createUser()");
+    userDao.insert();
+}
+```
+
+4. 输出
+
+```
+UserService, createUser()
+insert one record to User
+=====2021-12-26 10:29:06.338:com.imooc.spring.aop.service.UserService.createUser(3026)
+```
+
+## 利用注解配置Spring AOP
+
+注解简化XML配置, 效果和XML的一样
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -80,13 +80,17 @@ Spring test与Junit4
 
 ## s01
 
-XML配置AOP
+XML配置AOP, 四种advice(除了around)
 
+## s02
 
+Around Advice
 
+用AOP进行方法性能筛选, 方法开始前记录方法的执行时间, 方法结束后记录方法的结束时间, 作差记录过长的时间. 利用环绕通知, 控制运行方法的完整运行周期.
 
+## s03
 
-
+利用注解开发AOP
 
 
 
