@@ -3558,15 +3558,63 @@ insert one record to User
 
 注解简化XML配置, 效果和XML的一样
 
+1. xml中配置
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
 
+    <!-- 初始化IOC容器 -->
+    <context:component-scan base-package="com.imooc"/>
 
+    <!-- 启用Spring AOP的注解模式-->
+    <aop:aspectj-autoproxy/>
+</beans>
+```
 
+启用Spring AOP的注解模式: `<aop:aspectj-autoproxy/>`
 
+2. 按照之前IOC的注解模式, 给各个类添加注解
 
+这里Service中要注入Dao, 使用@Resource的方式
 
+3. 声明切面类为组件和切面
 
+```java
+@Component// 说明当前类是组件
+@Aspect// 说明当前类是切面
+public class MethodChecker {...}
+```
 
+4. 声明切面方法
+
+```java
+// 环绕通知, 参数为PointCut切点表达式
+@Around("execution(* com.imooc..*Service.*(..))")
+public Object check(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {}
+```
+
+当然还有其他四种注解
+
+```
+@Before()
+@After()
+@AfterReturning
+@AfterThrowing
+```
+
+## AOP原理
+
+### 静态代理和动态代理
 
 
 
