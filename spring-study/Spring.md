@@ -4011,7 +4011,7 @@ UserService userServiceProxy =
 
 ---
 
-实现逻辑:
+***实现逻辑:***
 
 简化的实现类和ProxyInvocationHandler类
 
@@ -4049,19 +4049,47 @@ public class ProxyInvocationHandler implements InvocationHandler {   
 }
 ```
 
+其中的重点就是`(UserService)Proxy.newProxyInstance(userService.getClass().getClassLoader(), userService.getClass().getInterfaces(),invocationHandler); `
 
+Proxy是jdk1.2之后, 反射中提供的类, 他的作用是根据已有的接口生成对应的代理类, 由JDK底层实现
 
+原理图:
 
+![image-20211226220401783](img/Spring/image-20211226220401783.png)
 
+* UserService userServiceProxy = Proxy.newProxyInstance()
+  分成三个步骤: 
 
+1. 在本地的硬盘上创建字节码.class文件. class文件类名和存放的包名在Proxy.newProxyInstance()方法中确定
+   默认情况下, 包放在com.sun.proxy路径下, 
 
+2. 确定类名, 类在没有重复的情况, com.sun.proxy.$Proxy0
 
+3. 产生代理类的代码, ProxyGenerator.generateProxyClass. 来生成代理类
+   代理类的功能:
 
+   ```java
+   // 伪代码如下：
+   public class $Proxy0 implements UserService {    
+       private UserService targetObject;    
+       public void createUser() {        
+           System.out.println("=========");        
+           targetObject.createUser();                                                  
+       }
+   }
+   ```
 
+   实现同一个接口, 在代理类内部持有委托类的对象(由Proxy.newProxyInstance()中的invokerHandler传入的), 
 
+最后保存了的class字节码文件, 如何被识别?
 
+Proxy.newProxyInstance()方法中, 会执行defineClass0: 将刚才的class文件通过被代理类的classLoader, 使类加载器载入到JVM中的方法区中. JVM的方法区保存了字节码解析以后的类的描述信息.
 
+类加载后, 通过newProxyInstance()完成实例化的工作, 类似于new创建对象, 创建出来的对象$Proxy0对象放在JVM heap(堆, 堆用来保存对象)中, 因为$Proxy0对象创建的时候, 也需要持有委托类, 所以在内存中, 代理对象会持有被代理接口的引用. 理解成, 代理对象$Proxy0在执行自己代码的时候, 还要执行委托类中的方法
 
+以上newInstance方法完成.
+
+然后执行userServiceProxy.createUser(), userServiceProxy指向我们的委托类的对象, 所以这里的createUser就会只有上面伪代码中的代码.
 
 ### CGLib
 
