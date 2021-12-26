@@ -3789,11 +3789,208 @@ create user
 1. 代理类和委托类要实现相同的接口
 2. 代理类中要持有委托类的对象
 
-但是静态代理对于每一个委托类都要创建一个代理类, 类多的话, 就要手动创建额外的代理类
+但是静态代理对于每一个委托类都要创建一个代理类, 类多的话, 就要手动创建额外的代理类. 
+
+用动态代理, 根据接口的结构动态地在运行时在内存中生成
 
 jdk1.2引入了反射机制, 其中有一个功能: 根据要实现的接口, 按照接口的结构, 自动生成相应的代理类, 完成目标方法的扩展
 
-代理类通过反射, 在运行的时候
+代理类通过反射, 在运行的时候自动生成
+
+动态代理强制要求, 必须实现接口才可以运行
+
+---
+
+代码实现:
+
+1. 代理类实现InvocationHandler
+
+* InvocationHandler是JDK提供的反射类，用于在JDK动态代理中对目标方法进行增强
+
+ * InvocationHandler实现类与切面类的环绕通知类似
+ * 使用invoke的方法对目标方法进行增强
+ * Object ret = method.invoke(target, args);
+   // 调用目标对象方法, 类似于环绕通知的ProceedingJointPoint.proceed()方法       
+
+```java
+package com.imooc.spring.aop.service;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * InvocationHandler是JDK提供的反射类，用于在JDK动态代理中对目标方法进行增强
+ * InvocationHandler实现类与切面类的环绕通知类似
+ */
+public class ProxyInvocationHandler implements InvocationHandler {
+
+    // 目标对象
+    private Object target;
+
+    private ProxyInvocationHandler(Object target) {
+        this.target = target;
+    }
+
+    /**
+     * 在invoke()方法对目标方法进行增强
+     *
+     * @param proxy  代理类对象, 通常有jdk动态代理自动生成
+     * @param method 目标方法对象
+     * @param args   目标方法实参
+     * @return 目标方法运行后返回值
+     * @throws Throwable 目标方法抛出的异
+     */
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // 扩展方法
+        System.out.println("======= " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()) + " =======");
+
+        // 调用目标对象方法, 类似于环绕通知的ProceedingJointPoint.proceed()方法
+        Object ret = method.invoke(target, args);
+
+        return ret;
+    }
+}
+```
+
+这里需要类似于静态代理的方式, 将"委托类"传入
+
+```java
+// 目标对象
+private Object target;
+
+private ProxyInvocationHandler(Object target) {
+    this.target = target;
+}
+```
+
+但是需要注意的是, 因为这里ProxyInvocationHandler面对所有类生效的, 所以不能强制书写类型, 而是使用Object
+
+2. 在ProxyInvocationHandler中写main函数调用
+
+Proxy.newProxyInstance(classLoader, interfaces, invocationHandler)得到代理对象
+
+```java
+public static void main(String[] args) {
+    UserService userService = new UserServiceImpl();
+    ProxyInvocationHandler invocationHandler = new ProxyInvocationHandler(userService);
+
+    // 动态创建代理类. 基于接口创建制定的代理类
+    // 传入: 类加载器, 需要实现的接口, 如何对方法进行扩展
+    // 这个运行时的效果和之前的静态代理的方式完全相同, 只不过是自动生成
+    UserService userServiceProxy =
+        (UserService) Proxy.newProxyInstance(
+        userService.getClass().getClassLoader(),
+        userService.getClass().getInterfaces(), invocationHandler);
+    userServiceProxy.createUser();
+}
+```
+
+输出:
+
+会运行invoker方法, 然后再invoke中method.invoke运行原方法
+
+```
+======= 2021-12-26 15:54:07.328 =======
+create user
+```
+
+---
+
+jdk动态代理是如何体现自动生成的?
+
+1. 新建一个接口EmployeeService
+
+```java
+package com.imooc.spring.aop.service;
+public interface EmployeeService {
+    public void createEmployee();
+}
+```
+
+2. 实现类
+
+```java
+package com.imooc.spring.aop.service;
+public class EmplyeeServiceImpl implements EmployeeService {
+    @Override
+    public void createEmployee() {
+        System.out.println("create employee");
+    }
+}
+```
+
+3. 新增代理
+
+```java
+package com.imooc.spring.aop.service;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * InvocationHandler是JDK提供的反射类，用于在JDK动态代理中对目标方法进行增强
+ * InvocationHandler实现类与切面类的环绕通知类似
+ */
+public class ProxyInvocationHandler implements InvocationHandler {
+
+    // 目标对象
+    private Object target;
+
+    private ProxyInvocationHandler(Object target) {
+        this.target = target;
+    }
+
+    /**
+     * 在invoke()方法对目标方法进行增强
+     *
+     * @param proxy  代理类对象, 通常有jdk动态代理自动生成
+     * @param method 目标方法对象
+     * @param args   目标方法实参
+     * @return 目标方法运行后返回值
+     * @throws Throwable 目标方法抛出的异
+     */
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // 扩展方法
+        System.out.println("======= " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()) + " =======");
+
+        // 调用目标对象方法, 类似于环绕通知的ProceedingJointPoint.proceed()方法
+        Object ret = method.invoke(target, args);
+
+        return ret;
+    }
+
+    public static void main(String[] args) {
+        UserService userService = new UserServiceImpl();
+        ProxyInvocationHandler invocationHandler = new ProxyInvocationHandler(userService);
+
+        // 动态创建代理类. 基于接口创建制定的代理类
+        // 传入: 类加载器, 需要实现的接口, 如何对方法进行扩展
+        // 这个运行时的效果和之前的静态代理的方式完全相同, 只不过是自动生成
+        UserService userServiceProxy =
+                (UserService) Proxy.newProxyInstance(
+                        userService.getClass().getClassLoader(),
+                        userService.getClass().getInterfaces(), invocationHandler);
+        userServiceProxy.createUser();
+
+        // 动态代理必须实现接口才可以运行
+        EmployeeService employeeService = new EmplyeeServiceImpl();
+        EmployeeService employeeServiceProxy =
+                (EmployeeService) Proxy.newProxyInstance(
+                        employeeService.getClass().getClassLoader(),
+                        employeeService.getClass().getInterfaces(),
+                        new ProxyInvocationHandler(employeeService));
+        employeeServiceProxy.createEmployee();
+    }
+}
+```
 
 
 
@@ -3809,7 +4006,9 @@ jdk1.2引入了反射机制, 其中有一个功能: 根据要实现的接口, �
 
 
 
+动态代理必须实现接口才可以运行, 但是实际工程中有大量的类都没有实现接口. 
 
+Spring提供了解决方法, 依赖第三方组件CGLib, 实现对类的增强
 
 ### CGLib
 
