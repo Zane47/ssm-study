@@ -4009,9 +4009,49 @@ UserService userServiceProxy =
 
 根据已有的接口, 生成对应的代理类, 由JDK底层实现.
 
+---
+
+实现逻辑:
+
+简化的实现类和ProxyInvocationHandler类
+
+```java
+public class UserServiceImpl implements UserService {    
+    @Override    
+    public void createUser() {        
+        System.out.println("create user");    
+    }
+} 
+```
+
+```java
+public class ProxyInvocationHandler implements InvocationHandler {    
+    // 目标对象    
+    private Object target;    
+    private ProxyInvocationHandler(Object target) {        
+        this.target = target;    
+    }    
+    @Override    
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {        
+        // 扩展方法        
+        System.out.println("======= " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()) + " =======");        
+        // 调用目标对象方法, 类似于环绕通知的ProceedingJointPoint.proceed()方法        
+        Object ret = method.invoke(target, args);        
+        return ret;    
+    }    
+    public static void main(String[] args) {        
+        UserService userService = new UserServiceImpl();        
+        ProxyInvocationHandler invocationHandler = new ProxyInvocationHandler(userService);
+        UserService userServiceProxy = (UserService)Proxy.newProxyInstance(
+            userService.getClass().getClassLoader(),                  userService.getClass().getInterfaces(), invocationHandler);        
+        userServiceProxy.createUser();
+    } 
+}
+```
 
 
--> todo: 5-3
+
+
 
 
 
