@@ -2966,8 +2966,6 @@ aop:pointcut用于描述切点作用在哪些类的哪些方法上, execution表
 
 aop:aspect增加aop:before标签代表在目标方法运行前先执行methodAspect.printExecutionTime(), 他的作用范围是由pointcut中的expression表达式决定的
 
-
-
 4. SpringApplication中
 
 ```java
@@ -3004,7 +3002,7 @@ AOP的配置过程:
 3. xml中配置切面类, [aop conf](https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#xsd-schemas-aop)
 
 4. 定义pointCut, 当前的切面作用在哪些类的哪些方法上
-5. 配置Advice, 配置通知, before: 前置通知
+5. 配置Advice, 配置通知, (before: 前置通知)
 
 ## AOP关键概念
 
@@ -3459,7 +3457,7 @@ Exception in thread "main" java.lang.RuntimeException: 用户已存在
 
 #### Around Advice
 
-利用AOP进行方法性能筛选, 方法开始前记录方法的执行时间, 方法结束后记录方法的结束时间, 作差记录过长的时间. 利用环绕通知, 控制运行方法的完整运行周期.
+利用AOP进行方法性能筛选, 方法开始前记录方法的执行时间, 方法结束后记录方法的结束时间, 作差记录过长的时间. 利用环绕通知, 控制运行方法的完整运行周期. 自定义通知时机, 控制方法是否运行
 
 可以使用环绕通知来实现上面的四种通知, 重点在于:
 
@@ -3614,10 +3612,12 @@ public Object check(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {}
 
 ## Spring AOP实现原理
 
-Spring基于代理模式实现功能动态扩展，包含两种形式：
+Spring基于代理模式实现功能动态扩展，包含两种情况：
 
 * 目标类拥有接口，通过JDK动态代理实现功能扩展
 * 目标类没有接口，通过CGLib组件实现功能扩展
+
+先说明代理模式相关概念
 
 ### 代理模式和静态代理
 
@@ -3783,6 +3783,8 @@ create user
 这里需要手动创建代理类, -> 自动生成(动态代理)
 
 ### JDK动态代理
+
+#### 演示
 
 静态代理: 手动创建代理类, 代理类实现接口, 并持有委托类的对象的引用, 在代理类的实现方法中做扩展
 
@@ -3992,51 +3994,147 @@ public class ProxyInvocationHandler implements InvocationHandler {
 }
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 动态代理必须实现接口才可以运行, 但是实际工程中有大量的类都没有实现接口. 
 
 Spring提供了解决方法, 依赖第三方组件CGLib, 实现对类的增强
 
+#### 原理
+
+```java
+UserService userServiceProxy =
+    (UserService) Proxy.newProxyInstance(
+    userService.getClass().getClassLoader(),
+    userService.getClass().getInterfaces(), invocationHandler);
+```
+
+根据已有的接口, 生成对应的代理类, 由JDK底层实现.
+
+
+
+-> todo: 5-3
+
+
+
+
+
+
+
+
+
+
+
 ### CGLib
 
+Spring基于代理模式实现功能动态扩展，包含两种形式：
 
+* 目标类拥有接口，通过JDK动态代理实现功能扩展
+* 目标类没有接口，通过CGLib组件实现功能扩展
 
+---
 
+CGLib是运行时字节码增强技术
 
+SpringAOP扩展无接口类使用CGLib
 
+某一个类没有实现接口的时候, AOP会运行时生成目标继承类字节码的方式进行行为扩展
 
+<img src="img/Spring/image-20211226163943865.png" alt="image-20211226163943865" style="zoom:67%;" />
 
+原始的Service类中有一个方法findById, Service没有实现任何接口, 所以jdk的动态代理无法对他进行扩展, Spring看到这个类没有实现接口, 自动使用CGLib通过继承的方式对类进行扩展, 继承类是在JVM运行过程中自动生成的.
 
+生成规则: 原始名字$$EnhancerByCGLIB extends 原始的类
 
+重写findById, client直接调用增强的子类
 
+---
 
+演示, aop s03工程中, 使用AOP技术做了切面. 在`userService.createUser`增加断点可以看到
 
+![image-20211226165324360](img/Spring/image-20211226165324360.png)
 
+通过CGLib实现类的增强, 注意spring5之后名称改为EnhancerBySpringCGLIB
 
+做一点小改造.
 
+1. 新增接口
 
+```java
+package com.imooc.spring.aop.service;
+public interface IUserService {
+    public void createUser();
+    public String generateRandomPassword(String type, Integer length);
+}
+```
 
+2. UserService实现接口
 
+```java
+package com.imooc.spring.aop.service;
+import com.imooc.spring.aop.dao.UserDao;
+import org.springframework.stereotype.Service;
+import javax.annotation.Resource;
+@Service
+public class UserService implements IUserService {
+    @Resource
+    private UserDao userDao;
 
+    @Override
+    public void createUser() {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("UserService, createUser()");
+        userDao.insert();
+    }
 
+    @Override
+    public String generateRandomPassword(String type, Integer length) {
+        System.out.println("按" + type + "方式生成" + length + "位随机密码");
+        return "Zxcquei1";
+    }
+}
+```
 
+3. SpringApplication中
 
+```java
+ApplicationContext context =
+    new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+// CGLib
+IUserService iUserService = context.getBean("userService", IUserService.class);
+iUserService.createUser();
+```
 
+断点打到createUser行, 可见
+
+<img src="img/Spring/image-20211226170255643.png" alt="image-20211226170255643" style="zoom:67%;" />
+
+所产生的的对象不再是EnhancerBySpringCGLIB, 而是JdkDynamicAopProxy(jdk动态代理), 因为目标类实现了接口, 所以优先使用jdk动态代理来做类增强
+
+所以!!!, 面试题: ***AOP的实现原理***, 要分成两种情况,:
+
+* 目标类实现了接口, Spring优先使用JDK动态代理, 实现目标类的代理, 从而实现扩展
+* 目标类没有实现接口, 自动使用CGLib, 继承的方式完成目标类的扩展.
 
 # Spring JDBC与事务管理
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

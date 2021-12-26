@@ -9,10 +9,11 @@ import javax.annotation.Resource;
  * 用户服务
  */
 @Service
-public class UserService {
+public class UserService implements IUserService {
     @Resource
     private UserDao userDao;
 
+    @Override
     public void createUser() {
         /*if (1 == 1) {
             throw new RuntimeException("用户已存在");
@@ -28,6 +29,7 @@ public class UserService {
         userDao.insert();
     }
 
+    @Override
     public String generateRandomPassword(String type, Integer length) {
         System.out.println("按" + type + "方式生成" + length + "位随机密码");
         return "Zxcquei1";
