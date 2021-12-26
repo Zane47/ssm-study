@@ -3256,23 +3256,210 @@ insert one record to User
 <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
 ```
 
-### 五种通知类型
+### Advice通知
+
+通知要绑定切点, 说明时机才可以使用.
+
+#### 具体通知类型
+
+通知: 什么时机取执行切面的方法. 都是作用在**方法**上
+
+| 说明                   | 注解                                                   |
+| ---------------------- | ------------------------------------------------------ |
+| Before Advice          | 前置通知，目标方法运行前执行                           |
+| After Returning Advice | 返回后通知，目标方法返回数据后执行                     |
+| After Throwing Advice  | 异常通知，目标方法抛出异常后执行                       |
+| After Advice           | 后置通知，目标方法运行后执行                           |
+| Around Advice          | 最强大通知，自定义通知执行时机，可决定目标方法是否运行 |
+
+After Returning 和After Throwing是互斥的
+
+After Advice: 类似try catch, finally. 无论成功与否, 都会执行
+
+---
+
+特殊的"通知": 引介增强. 派生的, 类似通知的组件. 本质是一个拦截器
+
+* 引介增强(Introductionlnterceptor)是对类的增强，而非方法
+
+* 引介增强允许**在运行时**为目标类增加新属性或方法
+
+* 引介增强允许**在运行时**改变类的行为，让类随运行环境动态变更
+
+#### 使用
+
+##### after
+
+1. xml文件中新增通知
+
+````xml
+<aop:aspect ref="methodAspect">
+    
+    <!-- ... -->
+    
+    
+    <aop:after method="doAfter" pointcut-ref="pointcut"/>
+</aop:aspect>
+````
+
+前面的pointcut切点的配置为:
+
+```xml
+<!-- 只输出service的时间, 类名符合xxxService即可 -->
+<aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
+```
+
+2. 新增doAfter方法
+
+```java
+/**
+* 后置通知的处理方法
+*/
+public void doAfter(JoinPoint joinPoint) {
+    System.out.println("出发后置通知");
+}
+```
+
+3. 输出
+
+```
+---->2021-12-26 09:11:23 692:com.imooc.spring.aop.service.UserService.createUser
+---->参数个数: 0
+UserService, createUser()
+insert one record to User
+<----触发后置通知
+---->2021-12-26 09:11:23 705:com.imooc.spring.aop.service.UserService.generateRandomPassword
+---->参数个数: 2
+---->参数: type
+---->参数: 3
+按type方式生成3位随机密码
+<----触发后置通知
+```
+
+可以看到在方法的最后, 触发了后置通知
+
+但是后置通知无法获取目标方法运行中产生的返回值, 或者时候抛出的异常. -> After Returning Advice/After Throwing Advice
+
+##### after-returning
+
+1. xml配置
+
+```xml
+<!-- returning: 由哪个参数接受目标方法的返回值 -->
+<aop:after-returning method="doAfterReturning" returning="ret" pointcut-ref="pointcut"/>
+```
+
+注意其中returing参数, 代表由哪个参数接收目标方法的返回值
+
+2. 添加切面方法
+
+```java
+public void doAfterReturning(JoinPoint joinPoint, Object ret) {
+    System.out.println("<----返回后通知" + ret);
+}
+```
+
+3. 运行
+
+```
+---->2021-12-26 09:17:03 473:com.imooc.spring.aop.service.UserService.createUser
+---->参数个数: 0
+UserService, createUser()
+insert one record to User
+<----触发后置通知
+<----返回后通知null
+---->2021-12-26 09:17:03 493:com.imooc.spring.aop.service.UserService.generateRandomPassword
+---->参数个数: 2
+---->参数: type
+---->参数: 3
+按type方式生成3位随机密码
+<----触发后置通知
+<----返回后通知Zxcquei1
+```
+
+createUser方法没有返回值, 所有输出null
+
+generateRandomPassword方法有返回值, 输出对应的返回值
+
+---
+
+需要注意, after通知和after-returning通知的顺序是根据配置文件的前后顺序决定的
+
+```xml
+<aop:after method="doAfter" pointcut-ref="pointcut"/>
+<aop:after-returning method="doAfterReturning" returning="ret" pointcut-ref="pointcut"/>
+```
+
+```xml
+<aop:after-returning method="doAfterReturning" returning="ret" pointcut-ref="pointcut"/>
+<aop:after method="doAfter" pointcut-ref="pointcut"/>
+```
+
+##### after-throwing
+
+1. xml配置
+
+```xml
+<!-- throwing: 由哪个参数接收目标方法抛出的异常 -->
+<aop:after-throwing method="doAfterThrowing" throwing="th" pointcut-ref="pointcut"/>
+```
+
+注意其中throwing参数, 代表由哪个参数接收目标方法抛出的异常
 
 
+2. 添加切面方法
 
+```java
+public void doAfterThrowing(JoinPoint joinPoint, Throwable th) {
+    System.out.println("<----异常通知" + th.getMessage());
+}
+```
 
+3. userService中手动抛出异常
 
+```java
+public void createUser() {
+    if (1 == 1) {
+        throw new RuntimeException("用户已存在");
+    }
+    System.out.println("UserService, createUser()");
+    userDao.insert();
+}
+```
 
+4. 运行
 
+```
+---->2021-12-26 09:24:40 736:com.imooc.spring.aop.service.UserService.createUser
+---->参数个数: 0
+<----触发后置通知
+<----异常通知用户已存在
+Exception in thread "main" java.lang.RuntimeException: 用户已存在
+	at com.imooc.spring.aop.service.UserService.createUser(UserService.java:13)
+	...
+```
 
+---
 
+需要注意, after通知和after-throwing通知的顺序是根据配置文件的前后顺序决定的
 
+```xml
+<aop:after-throwing method="doAfterThrowing" throwing="th" pointcut-ref="pointcut"/>
+<aop:after method="doAfter" pointcut-ref="pointcut"/>
+```
 
+```xml
+<aop:after method="doAfter" pointcut-ref="pointcut"/>
+<aop:after-throwing method="doAfterThrowing" throwing="th" pointcut-ref="pointcut"/>
+```
 
+以上四种通知, 笔试面试考的多, 实际使用用的少, 更多使用Around Advice环绕通知
 
+---
 
+#### Around Advice
 
-
+利用AOP进行方法性能筛选
 
 
 

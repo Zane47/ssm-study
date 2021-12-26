@@ -34,8 +34,8 @@
     <aop:config>
         <!-- <aop:pointcut id="pointcut" expression="execution(public * com.imooc..*.*(..))"/>-->
 
-        <!-- 只输出service的时间, 类名符合xxxService即可 -->
-        <!-- <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>-->
+        <!-- 只输出service的, 类名符合xxxService即可 -->
+        <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
 
         <!-- 只对没有任何返回值的输出 -->
         <!-- <aop:pointcut id="pointcut" expression="execution(void com.imooc..*Service.*(..))"/>-->
@@ -53,7 +53,7 @@
         <!-- <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(*,*))"/>-->
 
         <!-- 规定第一个参数类型是String -->
-        <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(String,*))"/>
+        <!-- <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(String,*))"/>-->
 
 
         <!-- aop:aspect: 定义切面类 -->
@@ -62,6 +62,15 @@
             代表在目标方法运行前先执行methodAspect.printExecutionTime()
              他的作用范围是由pointcut中的expression表达式决定的 -->
             <aop:before method="printExecTime" pointcut-ref="pointcut"/>
+
+            <aop:after method="doAfter" pointcut-ref="pointcut"/>
+
+            <!-- returning: 由哪个参数接收目标方法的返回值 -->
+            <aop:after-returning method="doAfterReturning" returning="ret" pointcut-ref="pointcut"/>
+
+            <!-- throwing: 由哪个参数接收目标方法抛出的异常 -->
+            <aop:after-throwing method="doAfterThrowing" throwing="th" pointcut-ref="pointcut"/>
+
         </aop:aspect>
     </aop:config>
 
