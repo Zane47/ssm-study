@@ -4222,7 +4222,198 @@ Spring JDBC的执行效率要比MyBatis高, 同时Spring IOC容器的存在, 不
 2. applicationContext.xml配置DataSource数据源
 3. 在Dao注入JdbcTemplate对象，实现数据CRUD
 
-### Jdbc Template实现CRUD
+## Spring Jdbc配置
+
+1. pom引入依赖
+
+需要依赖的jar:
+
+* spring-context
+* spring-jdbc
+* mysql-connector-java, mysql驱动
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.2.6.RELEASE</version>
+</dependency>
+
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-jdbc</artifactId>
+    <version>5.2.6.RELEASE</version>
+</dependency>
+
+<!-- mysql驱动 -->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>8.0.13</version>
+</dependency>
+```
+
+2. 书写applicationContext.xml
+
+* 声明数据源dataSource
+
+* 声明jdbcTemplate, 绑定数据源
+* 声明Dao, 注入jdbcTemplate
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+    <!-- 数据源
+        class指向Spring jdbc提供的数据源
+        DriverManagerDataSource说明在当前数据库中使用哪种数据类型, 连接哪台服务器, 用户名和密码是什么.也就是jdbc连接数据库的参数-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;allowPublicKeyRetrieval=true"/>
+        <property name="username" value="root"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <!-- jdbcTemplate提供了CRUD的API
+        id固定jdbcTemplate, 创建数据库连接, 绑定对应数据源
+        jdbcTemplate对象与数据源绑定, 一旦通过jdbc对数据CRUD,
+        就会通过datasource对象获取到底层的数据库连接信息, 进而创建jdbc连接对象, 完成后序操作-->
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="employeeDao" class="com.imooc.spring.jdbc.dao.EmployeeDao">
+        <!-- 为dao注入jdbcTemplate对象 -->
+        <property name="jdbcTemplate" ref="jdbcTemplate"/>
+    </bean>
+</beans>
+```
+
+* dataSource数据源
+
+class: Spring jdbc提供的数据源
+DriverManagerDataSource: 在当前数据库中使用哪种数据类型, 连接哪台服务器, 用户名和密码是什么. 也就是jdbc连接数据库的参数
+
+* jdbcTemplate
+
+jdbcTemplate提供了CRUD的API, bean id固定jdbcTemplate, 创建数据库连接, 绑定对应数据源
+jdbcTemplate对象与数据源绑定, 一旦通过jdbc对数据CRUD, 就会通过datasource对象获取到底层的数据库连接信息, 进而创建jdbc连接对象, 完成后序操作
+
+3. Employee
+
+entity类, 注意属性名和数据库字段名, 驼峰形式对应
+
+```java
+package com.imooc.spring.jdbc.entity;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import java.util.Date;
+
+/**
+ * 属性名和数据库字段名, 驼峰形式对应
+ */
+@Getter
+@Setter
+@ToString
+public class Employee {
+    private Integer eno;
+    private String eName;
+    private Float salary;
+    private String dName;
+    private Date hiredate;
+}
+```
+
+4. EmployeeDao
+
+```java
+package com.imooc.spring.jdbc.dao;
+import com.imooc.spring.jdbc.entity.Employee;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+@Getter
+@Setter
+public class EmployeeDao {
+    private JdbcTemplate jdbcTemplate;
+
+    public Employee findById(Integer eno) {
+        String sql = "select * from employee where eno = ?";
+        // 进行指定的查询, 将唯一得到的数据转换为对应的对象
+        // BeanPropertyRowMapper将bean的属性和每一行的列进行对应(Employee中的属性名和字段名按照驼峰命名格式一致)
+        // 完成从数据库记录到实体对象的转化
+        
+        // 将指定的sql转换为相应的对象
+        Employee employee = jdbcTemplate.queryForObject(sql, new Object[]{eno}, new BeanPropertyRowMapper<Employee>(Employee.class));
+        return employee;
+    }
+}
+```
+
+* 注入jdbcTemplate
+
+* jdbcTemplate.queryForObject, 自己写sql语句, ?代表查询参数; new Object[]{}的方式传参; BeanPropertyRowMapper将bean的属性和每一行的列进行对应(Employee中的属性名和字段名按照驼峰命名格式一致)
+
+5. SpringApplication输出
+
+```java
+package com.imooc.spring.jdbc;
+import com.imooc.spring.jdbc.dao.EmployeeDao;
+import com.imooc.spring.jdbc.entity.Employee;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+public class SpringApplication {
+    public static void main(String[] args) {
+
+        ApplicationContext context =
+                new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+
+        EmployeeDao employeeDao = context.getBean("employeeDao", EmployeeDao.class);
+        Employee employee = employeeDao.findById(3308);
+        System.out.println(employee);
+    }
+}
+```
+
+输出
+
+```
+Employee(eno=3308, eName=张三, salary=6000.0, dName=研发部, hiredate=2011-05-08 00:00:00.0)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
