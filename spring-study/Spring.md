@@ -4206,11 +4206,11 @@ iUserService.createUser();
 
 * 有了MyBatis为什么还要Spring Jdbc?
 
-两者面向的对象不一样, 
+两者面向的对象不一样
 
 MyBatis是一个OM框架, 封装的jar包适合中小企业进行敏捷开发, 让程序员可以快速完成数据库交互工作, 涉及到XML配置和操作细节, 封装程度较高, 执行效率相对较低
 
-Spring JDBC是对原始的JDBC做了简单封装, 大厂用户并发高, MyBatis微小的性能差距可能导致系统变慢, 所以大厂很少使用世面的成熟框架, 更多使用的是Spring JDBC这样子的轻量封装框架, 再进行二次封装
+Spring JDBC是对原始的JDBC做了简单封装, 大厂用户并发高, MyBatis微小的性能差距可能导致系统变慢, 所以大厂很少使用市面的成熟框架, 更多使用的是Spring JDBC这样子的轻量封装框架, 再进行二次封装
 
 Spring JDBC的执行效率要比MyBatis高, 同时Spring IOC容器的存在, 不会让程序像原生JDBC那样难以管理, 是原生和OM之间的折中选择
 
@@ -4223,8 +4223,6 @@ Spring JDBC的执行效率要比MyBatis高, 同时Spring IOC容器的存在, 不
 3. 在Dao注入JdbcTemplate对象，实现数据CRUD
 
 ### Jdbc Template实现CRUD
-
-
 
 
 
