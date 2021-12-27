@@ -3,6 +3,7 @@ import java.util.Date;
 
 import com.imooc.spring.jdbc.dao.EmployeeDao;
 import com.imooc.spring.jdbc.entity.Employee;
+import com.imooc.spring.jdbc.service.EmployeeService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -18,6 +19,9 @@ public class JdbcTemplateTest {
 
     @Resource
     private EmployeeDao employeeDao;
+
+    @Resource
+    private EmployeeService employeeService;
 
     /**
      * 通过id获取,单条记录
@@ -86,6 +90,19 @@ public class JdbcTemplateTest {
         int count = employeeDao.delete(8888);
         System.out.println("# of delete: " + count);
     }
+
+
+    /**
+     * 批量插入
+     */
+    @Test
+    public void testBatchInsert() throws Exception {
+        employeeService.batchImport();
+        System.out.println("batch import done");
+    }
+
+
+
 
 
 }

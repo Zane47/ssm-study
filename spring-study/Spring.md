@@ -4609,11 +4609,162 @@ public void testDelete() {
 }
 ```
 
-## Spring Jdbc实现编程式事务
+## Spring Jdbc实现事务
+
+Spring中事务有两种, 编程式事务和声明式事务
+
+---
+
+事务:
+
+事务是以一种可靠的、一致的方式，访问和操作数据库的程序单元.
+
+说人话：要么把事情做完，要么什么都不做，不要做一半
+
+事务依赖于数据库实现，MySQL通过事务区作为数据缓冲地带
+
+### 编程式事务
+
+* 编程式事务是指通过**代码手动**提交回滚事务的事务控制方法
+* SpringJDBC通过**TransactionManager**事务管理器实现事务控制
+* 事务管理器提供commit/rollback方法进行事务提交与回滚
+
+添加日志依赖, 查看sql的执行过程
+
+```xml
+<!-- logback日志组件, Spring框架默认集成 -->
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>1.2.3</version>
+</dependency>
+```
+
+批量插入10名人员:
+
+1. 添加EmployService, 批量插入10个人
+
+```java
+package com.imooc.spring.jdbc.service;
+import java.util.Date;
+import com.imooc.spring.jdbc.dao.EmployeeDao;
+import com.imooc.spring.jdbc.entity.Employee;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class EmployeeService {
+    private EmployeeDao employeeDao;
+    public void batchImport() {
+        for (int i = 1; i <= 10; i++) {
+            Employee employee = new Employee();
+            employee.setEno(8000 + i);
+            employee.setEName("worker" + i);
+            employee.setSalary(4000F);
+            employee.setDName("市场部");
+            employee.setHiredate(new Date());
+            employeeDao.insert(employee);
+        }
+    }
+}
+```
+
+2. applicationContext中注入属性
+
+```xml
+<bean id="employeeService" class="com.imooc.spring.jdbc.service.EmployeeService">
+    <property name="employeeDao" ref="employeeDao"/>
+</bean>
+```
+
+3. 测试批量插入
+
+```java
+/**
+     * 批量插入
+     */
+@Test
+public void testBatchInsert() {
+    employeeService.batchImport();
+    System.out.println("batch import done");
+}
+```
+
+查看日志
+
+```
+16:12:31.120 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL update
+16:12:31.121 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL statement [insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)]
+16:12:31.126 [main] DEBUG org.springframework.jdbc.datasource.DataSourceUtils - Fetching JDBC Connection from DataSource
+16:12:31.126 [main] DEBUG org.springframework.jdbc.datasource.DriverManagerDataSource - Creating new JDBC DriverManager Connection to [jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true]
+16:12:32.075 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - SQLWarning ignored: SQL state '22007', error code '1292', message [Incorrect date value: '2021-12-27 16:12:31.118' for column 'hiredate' at row 1]
+16:12:32.079 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL update
+16:12:32.079 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL statement [insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)]
+```
+
+创建新的连接, 然后在新连接中创建sql语句. 
+
+每一条数据都会执行这样子的操作. 每执行一次循环, 重复操作
+
+可以看出, 在循环的过程中, 底层数据库不是使用一个数据库连接, 而是每一次循环都创建一个新的数据库连接, 10次插入, 10次提交. 10个事务, 并不是一个整体. 我们希望的是10次insert操作是在一个事务中运行的(在一次数据库连接中运行)
+
+我们希望的是, 10条数据都处理完之后, 一次数据库连接, 一次提交commit, 然后释放连接.
+
+这里可以通过手动抛出错误来查看不是一条事务
+
+```java
+public void batchImport() throws Exception {
+    for (int i = 1; i <= 10; i++) {
+        if (i == 3) {
+            throw new Exception("test");
+        }
+        Employee employee = new Employee();
+        employee.setEno(8000 + i);
+        employee.setEName("worker" + i);
+        employee.setSalary(4000F);
+        employee.setDName("市场部");
+        employee.setHiredate(new Date());
+        employeeDao.insert(employee);
+    }
+}
+```
+
+查看数据库可以看到并不是批量插入的
+
+![image-20211227162453627](img/Spring/image-20211227162453627.png)
+
+需要引入事务
+
+---
+
+事务管理器, transactionManager
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 声明式事务
 
 
 

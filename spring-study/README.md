@@ -124,9 +124,9 @@ imooc.sql数据源, MySQL8, 但是服务器的是5.7, 版本低,
 
 ## s01
 
-Jdbc Template实现JRUD
+* Jdbc Template实现CRUD
 
-
+* 编程式事务
 
 
 
