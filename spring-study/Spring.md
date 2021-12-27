@@ -4740,6 +4740,128 @@ public void batchImport() throws Exception {
 
 事务管理器, transactionManager
 
+1. 添加事务管理器bean
+
+```xml
+<!-- 事务管理器 -->
+<!-- 基于数据源的事务管理器 -->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <!-- 绑定数据源 -->
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+```
+
+在employeeService中注入该bean
+
+```java
+@Getter
+@Setter
+public class EmployeeService {
+    private DataSourceTransactionManager transactionManager;
+}
+```
+
+```xml
+<bean id="employeeService" class="com.imooc.spring.jdbc.service.EmployeeService">
+    <property name="employeeDao" ref="employeeDao"/>
+    <property name="transactionManager" ref="transactionManager"/>
+</bean>
+```
+
+2. 编程式事务
+
+* 定义事务默认的标准配置TransactionDefinition
+
+```java
+// 定义了事务默认的标准配置
+TransactionDefinition definition = new DefaultTransactionDefinition();
+```
+
+* 事务执行阶段TransactionStatus
+
+```java
+// 开始一个事务, 返回事务状态, 事务状态说明当前事务的执行阶段
+TransactionStatus status = transactionManager.getTransaction(definition);
+// 之后所有的数据操作都会放入事务区中
+```
+
+* 操作后提交事务
+
+```java
+// 提交事务
+transactionManager.commit(status);
+```
+
+* 如果发生了错误, 回滚事务
+
+```java
+// 回滚事务
+transactionManager.rollback(status);
+```
+
+整体的代码:
+
+```java
+package com.imooc.spring.jdbc.service;
+
+import java.util.Date;
+
+import com.imooc.spring.jdbc.dao.EmployeeDao;
+import com.imooc.spring.jdbc.entity.Employee;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+@Getter
+@Setter
+public class EmployeeService {
+    private EmployeeDao employeeDao;
+    private DataSourceTransactionManager transactionManager;
+    public void batchImport() throws Exception {
+        // 定义了事务默认的标准配置
+        TransactionDefinition definition = new DefaultTransactionDefinition();
+
+        // 开始一个事务, 返回事务状态, 事务状态说明当前事务的执行阶段
+        TransactionStatus status = transactionManager.getTransaction(definition);
+        // 所有的数据操作都会放入事务区中
+        try {
+            for (int i = 1; i <= 10; i++) {
+                if (i == 3) {
+                    throw new Exception("test");
+                }
+                Employee employee = new Employee();
+                employee.setEno(8000 + i);
+                employee.setEName("worker" + i);
+                employee.setSalary(4000F);
+                employee.setDName("市场部");
+                employee.setHiredate(new Date());
+                employeeDao.insert(employee);
+            }
+            // 提交事务
+            transactionManager.commit(status);
+        } catch (Exception e) {
+            // 回滚事务
+            transactionManager.rollback(status);
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+执行对应的test方法, 因为这里手动抛出了异常, 可以看到数据库中不会插入第1,2条数据
+
+同时查看输出的日志, 因为发生了错误, 事务发生了回滚
+
+```
+```
+
+
+
+
+
 
 
 

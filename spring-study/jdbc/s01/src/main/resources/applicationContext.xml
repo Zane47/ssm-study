@@ -18,7 +18,7 @@
         <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;allowPublicKeyRetrieval=true"/>
         <property name="username" value="root"/>
-        <property name="password" value=""/>
+        <property name="password" value="mypwd"/>
 
     </bean>
 
@@ -39,6 +39,16 @@
 
     <bean id="employeeService" class="com.imooc.spring.jdbc.service.EmployeeService">
         <property name="employeeDao" ref="employeeDao"/>
+        <property name="transactionManager" ref="transactionManager"/>
     </bean>
+
+    <!-- 事务管理器 -->
+    <!-- 基于数据源的事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!-- 绑定数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+
 
 </beans>
