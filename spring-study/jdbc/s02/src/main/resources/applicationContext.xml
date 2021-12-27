@@ -2,11 +2,17 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans
         https://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/context
-        https://www.springframework.org/schema/context/spring-context.xsd">
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
 
     <!-- bean definitions here -->
 
@@ -16,7 +22,8 @@
         DriverManagerDataSource说明在当前数据库中使用哪种数据类型, 连接哪台服务器, 用户名和密码是什么.也就是jdbc连接数据库的参数-->
     <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;allowPublicKeyRetrieval=true"/>
+        <property name="url"
+                  value="jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;allowPublicKeyRetrieval=true"/>
         <property name="username" value="root"/>
         <property name="password" value=""/>
 
@@ -39,16 +46,29 @@
 
     <bean id="employeeService" class="com.imooc.spring.jdbc.service.EmployeeService">
         <property name="employeeDao" ref="employeeDao"/>
-        <property name="transactionManager" ref="transactionManager"/>
     </bean>
 
-    <!-- 事务管理器 -->
+    <!-- 1. 事务管理器, 用于创建事务和回滚 -->
     <!-- 基于数据源的事务管理器 -->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <!-- 绑定数据源 -->
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
+    <!--2.事务通知配置，决定哪些方法使用事务，哪些方法不使用事务
+           propagation: 事务传播行为, 绝大部分情况下都是REQUIRED代表需要时使用-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <!--目标方法名为batchImport时，启用声明式事务，成功提交，运行时异常回滚-->
+            <tx:method name="batchImport" propagation="REQUIRED"/>
+            <tx:method name="batch*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
 
-
+    <!--3. 定义声明式事务的作用范围-->
+    <aop:config>
+        <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>
+    </aop:config>
+    
 </beans>

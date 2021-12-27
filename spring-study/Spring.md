@@ -4935,49 +4935,167 @@ commit事务(Committing JDBC transaction on Connection )
 batch import done
 ```
 
+缺点: 可能在书写的时候遗忘书写编程式事务
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+为了解决这个缺点 -> 声明式事务
 
 ### 声明式事务
 
+配置的形式, 不修改源代码的情况下实现事务控制
+
+使用Spring AOP完成扩展
+
+* 声明式事务指在不修改源码情况下通过配置形式自动实现事务控制，声明式事务本质就是**AOP环绕通知**
+* 当目标方法执行成功时，自动提交事务
+* 当目标方法抛出**运行时异常**时，自动事务回滚 
+
+---
+
+配置过程:
+
+* 配置TransactionManager事务管理器
+* 配置事务通知与事务属性
+* 为事务通知绑定PointCut切点
+
+在不修改原始代码的情况下, 进行事务处理
+
+原始的代码方法
+
+```java
+public void batchImport() throws Exception {
+    try {
+        for (int i = 1; i <= 10; i++) {
+            /*if (i == 3) {
+                    throw new Exception("test");
+                }*/
+            Employee employee = new Employee();
+            employee.setEno(8000 + i);
+            employee.setEName("worker" + i);
+            employee.setSalary(4000F);
+            employee.setDName("市场部");
+            employee.setHiredate(new Date());
+            employeeDao.insert(employee);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+注意要引入aop依赖
+
+声明式事务底层依赖aop, 需要引入
+
+```xml
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjweaver</artifactId>
+    <version>1.9.5</version>
+</dependency>
+```
 
 
 
+1. 事务管理器, 用于创建事务和回滚
+
+```xml
+<!-- 1. 事务管理器, 用于创建事务和回滚 -->
+<!-- 基于数据源的事务管理器 -->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <!-- 绑定数据源 -->
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+```
+
+2. 事务通知配置，决定哪些方法使用事务，哪些方法不使用事务
+
+新增命名空间和schemaLocation: tx和aop
+
+```
+xmlns:tx="http://www.springframework.org/schema/tx"
+xmlns:aop="http://www.springframework.org/schema/aop"
 
 
+http://www.springframework.org/schema/tx
+https://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/aop 
+https://www.springframework.org/schema/aop/spring-aop.xsd
+```
 
+配置事务通知
 
+```xml
+<!--2.事务通知配置，决定哪些方法使用事务，哪些方法不使用事务
+           propagation: 事务传播行为, 绝大部分情况下都是REQUIRED代表需要时使用-->
+<tx:advice id="txAdvice" transaction-manager="transactionManager">
+    <tx:attributes>
+        <!--目标方法名为batchImport时，启用声明式事务，成功提交，运行时异常回滚-->
+        <tx:method name="batchImport" propagation="REQUIRED"/>
+    </tx:attributes>
+</tx:advice>
+```
 
+3. 定义声明式事务的作用范围
 
+```xml
+<!--3. 定义声明式事务的作用范围-->
+<aop:config>
+    <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
+    <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>
+</aop:config>
+```
 
+---
 
+三个步骤联系到一起:
 
+当目标方法是imooc包下Service结尾的类中的方法名为batchImport的时候, 则认为当前方法需要使用事务. 利用transactionManager对象来完成对事务的提交和回滚
 
+---
+
+测试运行:
+
+原始代码中添加报错信息, 查看是否启用事务
+
+```java
+public void batchImport() throws Exception {
+    try {
+        for (int i = 1; i <= 10; i++) {
+            if (i == 3) {
+                throw new Exception("test");
+            }
+            Employee employee = new Employee();
+            employee.setEno(8000 + i);
+            employee.setEName("worker" + i);
+            employee.setSalary(4000F);
+            employee.setDName("市场部");
+            employee.setHiredate(new Date());
+            employeeDao.insert(employee);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+测试
+
+```java
+/**
+     * 批量插入
+     */
+@Test
+public void testBatchInsert() throws Exception {
+    employeeService.batchImport();
+    System.out.println("batch import done");
+}
+```
+
+查看日志:
+
+```
+
+```
 
 
 
