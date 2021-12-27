@@ -26,12 +26,12 @@ public class EmployeeService {
         // 开始一个事务, 返回事务状态, 事务状态说明当前事务的执行阶段
         TransactionStatus status = transactionManager.getTransaction(definition);
         // 所有的数据操作都会放入事务区中
+
         try {
             for (int i = 1; i <= 10; i++) {
-                if (i == 3) {
+                /*if (i == 3) {
                     throw new Exception("test");
-                }
-
+                }*/
                 Employee employee = new Employee();
                 employee.setEno(8000 + i);
                 employee.setEName("worker" + i);
@@ -48,8 +48,6 @@ public class EmployeeService {
             transactionManager.rollback(status);
             e.printStackTrace();
         }
-
-
     }
 
 }

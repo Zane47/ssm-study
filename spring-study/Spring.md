@@ -4853,9 +4853,86 @@ public class EmployeeService {
 
 执行对应的test方法, 因为这里手动抛出了异常, 可以看到数据库中不会插入第1,2条数据
 
-同时查看输出的日志, 因为发生了错误, 事务发生了回滚
+同时查看输出的日志, 因为发生了错误, 事务发生了回滚, 数据库中表没有新增数据
 
 ```
+java.lang.Exception: test
+	at com.imooc.spring.jdbc.service.EmployeeService.batchImport(EmployeeService.java:33)
+	at JdbcTemplateTest.testBatchInsert(JdbcTemplateTest.java:100)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+```
+
+可以看到日志输出:
+
+启动一个全新的事务(Creating new transaction with name), 
+
+然后新建全新的数据库连接(Creating new JDBC DriverManager Connection)
+
+执行第一次insert语句(Executing prepared SQL update)
+
+执行第二次insert的时候, 没有创建新的连接, 应用原有的
+
+执行第三次insert的时候, 抛出错误, 回滚(Rolling back JDBC transaction on Connection)
+
+数据库释放关闭(Releasing JDBC Connection)
+
+```
+18:39:26.050 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Creating new transaction with name [null]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+18:39:26.050 [main] DEBUG org.springframework.jdbc.datasource.DriverManagerDataSource - Creating new JDBC DriverManager Connection to [jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true]
+18:39:26.446 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Acquired Connection [com.mysql.cj.jdbc.ConnectionImpl@43dac38f] for JDBC transaction
+18:39:26.451 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Switching JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@43dac38f] to manual commit
+18:39:26.477 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL update
+18:39:26.478 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL statement [insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)]
+18:39:26.557 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - SQLWarning ignored: SQL state '22007', error code '1292', message [Incorrect date value: '2021-12-27 18:39:26.474' for column 'hiredate' at row 1]
+18:39:26.559 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL update
+18:39:26.559 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL statement [insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)]
+18:39:26.606 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - SQLWarning ignored: SQL state '22007', error code '1292', message [Incorrect date value: '2021-12-27 18:39:26.559' for column 'hiredate' at row 1]
+18:39:26.606 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Initiating transaction rollback
+18:39:26.606 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Rolling back JDBC transaction on Connection [com.mysql.cj.jdbc.ConnectionImpl@43dac38f]
+18:39:26.661 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Releasing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@43dac38f] after transaction
+java.lang.Exception: test
+```
+
+---
+
+屏蔽抛出错误的代码, 执行
+
+启动一个全新的事务(Creating new transaction with name), 
+
+然后新建全新的数据库连接(Creating new JDBC DriverManager Connection)
+
+执行10次sql
+
+commit事务(Committing JDBC transaction on Connection )
+
+释放连接
+
+```
+20:52:33.225 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Creating new transaction with name [null]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+20:52:33.226 [main] DEBUG org.springframework.jdbc.datasource.DriverManagerDataSource - Creating new JDBC DriverManager Connection to [jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true]
+20:52:33.625 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Acquired Connection [com.mysql.cj.jdbc.ConnectionImpl@43dac38f] for JDBC transaction
+20:52:33.629 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Switching JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@43dac38f] to manual commit
+20:52:33.658 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL update
+20:52:33.659 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL statement [insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)]
+20:52:33.755 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - SQLWarning ignored: SQL state '22007', error code '1292', message [Incorrect date value: '2021-12-27 20:52:33.657' for column 'hiredate' at row 1]
+20:52:33.759 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL update
+20:52:33.760 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL statement [insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)]
+20:52:33.813 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - SQLWarning ignored: SQL state '22007', error code '1292', message [Incorrect date value: '2021-12-27 20:52:33.759' for column 'hiredate' at row 1]
+20:52:33.814 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL update
+20:52:33.814 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - Executing prepared SQL statement [insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)]
+20:52:33.863 [main] DEBUG org.springframework.jdbc.core.JdbcTemplate - SQLWarning ignored: SQL state '22007', error code '1292', message [Incorrect date value: '2021-12-27 20:52:33.814' for column 'hiredate' at row 1]
+...............................
+20:52:34.228 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Initiating transaction commit
+20:52:34.229 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Committing JDBC transaction on Connection [com.mysql.cj.jdbc.ConnectionImpl@43dac38f]
+20:52:34.286 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Releasing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@43dac38f] after transaction
+batch import done
 ```
 
 
