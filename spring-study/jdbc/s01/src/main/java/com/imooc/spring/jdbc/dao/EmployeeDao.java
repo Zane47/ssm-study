@@ -6,6 +6,9 @@ import lombok.Setter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.List;
+import java.util.Map;
+
 @Getter
 @Setter
 public class EmployeeDao {
@@ -26,6 +29,36 @@ public class EmployeeDao {
         Employee employee = jdbcTemplate.queryForObject(sql, new Object[]{eno}, new BeanPropertyRowMapper<Employee>(Employee.class));
         return employee;
     }
+
+    /**
+     * 查询多条记录
+     */
+    public List<Employee> findByDname(String dName) {
+        String sql = "select * from employee where dname = ?";
+        // 查询复合数据
+        List<Employee> list = jdbcTemplate.query(sql, new Object[]{dName},
+                new BeanPropertyRowMapper<Employee>(Employee.class));
+        return list;
+    }
+
+
+    /**
+     * 没有与之对应的字段
+     * as用来模拟无法进行有效的属性与字段的映射
+     */
+    public List<Map<String, Object>> findMapByDname(String dName) {
+        String sql = "select eno as empno, salary as s from employee where dname = ?";
+
+        // 查询结果, 按照列表返回, 同时默认将数据按map对象进行包裹
+        // Map中的key是原始的字段名, value是字段名所对应的数值
+        // queryForList: 不管有没有对应的实体属性, 都将其放入map中, 每一个map对应一条记录
+        List<Map<String, Object>> maps =
+                jdbcTemplate.queryForList(sql, new Object[]{dName});
+        return maps;
+    }
+
+
+
 
 
 }

@@ -2605,6 +2605,14 @@ public UserService userService(UserDao userDao, EmployeeDao employeeDao) {
 2. 利用@RunWith与@ContextConfiguration描述测试用例类
    * @RunWith: 将Junit4的运行过程交给Spring来完成, 该注解让Spring接管Junit4的控制权, 完成IOC的初始化工作
    * @ContextConfiguratoin: 初始化IOC容器过程中, 加载哪个配置文件
+
+这两个注解相当与:
+
+```java
+ApplicationContext context =
+                new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+```
+
 3. 测试用例类从容器获取对象完成测试用例的执行
 
 ---
@@ -4389,9 +4397,128 @@ public class SpringApplication {
 Employee(eno=3308, eName=张三, salary=6000.0, dName=研发部, hiredate=2011-05-08 00:00:00.0)
 ```
 
+## Jdbc Template读操作
+
+为了测试, 增加spring-test和junit
+
+```xml
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.12</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-test</artifactId>
+    <version>5.2.6.RELEASE</version>
+</dependency>
+```
 
 
 
+### 查询单条数据
+
+就是上节的查询内容
+
+jdbcTemplate.queryForObject
+
+```java
+/**
+ * 通过id获取,单条记录
+ */
+@Test
+public void testFindById() {
+    Employee employee = employeeDao.findById(3308);
+    System.out.println(employee);
+}
+```
+
+### 查询多条数据
+
+jdbcTemplate.query
+
+dao中方法
+
+```java
+/**
+ * 查询多条记录
+ */
+public List<Employee> findByDname(String dName) {
+    String sql = "select * from employee where dname = ?";
+    // 查询复合数据
+    List<Employee> list = jdbcTemplate.query(
+        sql, new Object[]{dName}, new BeanPropertyRowMapper<Employee>(Employee.class));
+    return list;
+}
+```
+
+test
+
+````java
+/**
+ * 查询list
+ */
+@Test
+public void testFindByDname() {
+    List<Employee> byDname = employeeDao.findByDname("研发部");
+    System.out.println(byDname);
+}
+````
+
+### 查询属性与字段的映射
+
+上面查询的是所有的字段, 并且将字段按照属性名的对照关系进行对应转换, 但是实际过程中, 很多字段没有与之对应的属性, 也就是无法进行有效的属性与字段的映射
+
+jdbcTemplate.queryForList: 在没有对应实体类的情况下, 用`List<Map<>>`来得到相应的结果
+
+不管有没有对应的实体属性, 都将其放入map中, 每一个map对应一条记录. Map中的key是原始的字段名, value是字段名所对应的数值
+
+employeeDao中:
+
+```java
+/**
+ * 没有与之对应的字段
+ * as用来模拟无法进行有效的属性与字段的映射
+ */
+public List<Map<String, Object>> findMapByDname(String dName) {
+    String sql = "select eno as empno, salary as s from employee where dname = ?";
+
+    // 查询结果, 按照列表返回, 同时默认将数据按map对象进行包裹
+    // Map中的key是原始的字段名, value是字段名所对应的数值
+    // queryForList: 不管有没有对应的实体属性, 都将其放入map中, 每一个map对应一条记录
+    List<Map<String, Object>> maps =
+        jdbcTemplate.queryForList(sql, new Object[]{dName});
+    return maps;
+}
+```
+
+测试:
+
+```java
+/**
+ * 没有与之对应的字段
+ */
+@Test
+public void findMapByDname() {
+    List<Map<String, Object>> list = employeeDao.findMapByDname("研发部");
+    System.out.println(list);
+}
+```
+
+输出:
+
+```
+[{empno=3308, s=6000.0}, {empno=3420, s=8700.0}]
+```
+
+list结果, 每条数据都是map, key是查询结果的字段名, value是对应的字段值
+
+## Jdbc Template写操作
+
+新增, 修改, 删除
+
+jdbcTemplate.update(), 所有写入操作的方法
 
 
 
