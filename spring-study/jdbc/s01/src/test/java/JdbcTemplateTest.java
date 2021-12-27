@@ -1,3 +1,6 @@
+
+import java.util.Date;
+
 import com.imooc.spring.jdbc.dao.EmployeeDao;
 import com.imooc.spring.jdbc.entity.Employee;
 import org.junit.Test;
@@ -43,4 +46,46 @@ public class JdbcTemplateTest {
         List<Map<String, Object>> list = employeeDao.findMapByDname("研发部");
         System.out.println(list);
     }
+
+
+    /**
+     * insert
+     */
+    @Test
+    public void testInsert() {
+        Employee employee = new Employee();
+        employee.setEno(8888);
+        employee.setEName("zhaoliu");
+        employee.setSalary(6666F);
+        employee.setDName("研发部");
+        employee.setHiredate(new Date());
+
+
+        employeeDao.insert(employee);
+    }
+
+
+    /**
+     * update
+     */
+    @Test
+    public void testUpdate() {
+        Employee employee = employeeDao.findById(8888);
+        employee.setSalary(employee.getSalary() + 1000);
+
+        int count = employeeDao.update(employee);
+        System.out.println("# of update: " + count);
+    }
+
+
+    /**
+     * 删除
+     */
+    @Test
+    public void testDelete() {
+        int count = employeeDao.delete(8888);
+        System.out.println("# of delete: " + count);
+    }
+
+
 }

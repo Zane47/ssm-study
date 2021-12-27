@@ -4518,9 +4518,98 @@ list结果, 每条数据都是map, key是查询结果的字段名, value是对�
 
 新增, 修改, 删除
 
-jdbcTemplate.update(), 所有写入操作的方法
+jdbcTemplate.update(), 所有写入操作的方法, 返回值是影响的数据数目
 
+---
 
+新增:
+
+```java
+/**
+     * insert
+     */
+public int insert(Employee employee) {
+    String sql = "insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)";
+
+    int count = jdbcTemplate.update(sql,
+                                    new Object[]{employee.getEno(), employee.getEName(), employee.getSalary(), employee.getDName(), employee.getHiredate()});
+    return count;
+}
+```
+
+```java
+/**
+     * insert
+     */
+@Test
+public void testInsert() {
+    Employee employee = new Employee();
+    employee.setEno(8888);
+    employee.setEName("zhaoliu");
+    employee.setSalary(6666F);
+    employee.setDName("研发部");
+    employee.setHiredate(new Date());
+    employeeDao.insert(employee);
+}
+```
+
+---
+
+修改
+
+```java
+/**
+     * update
+     */
+public int update(Employee employee) {
+    String sql = "update employee set ename = ?, salary = ?, dname = ?, hiredate = ? where eno = ?";
+    int count = jdbcTemplate.update(sql,
+                                    new Object[]{employee.getEName(), employee.getSalary(), employee.getDName(), employee.getHiredate(), employee.getEno()});
+    return count;
+}
+```
+
+```java
+/**
+     * update
+     */
+@Test
+public void testUpdate() {
+    Employee employee = employeeDao.findById(8888);
+    employee.setSalary(employee.getSalary() + 1000);
+
+    int count = employeeDao.update(employee);
+    System.out.println("# of update: " + count);
+}
+```
+
+---
+
+删除
+
+```java
+/**
+* 删除
+*/
+public int delete(int eno) {
+    String sql = "delete from employee where eno = ?";
+    int count = jdbcTemplate.update(sql, new Object[]{eno});
+    return count;
+}
+```
+
+```java
+/**
+* 删除
+*/
+@Test
+public void testDelete() {
+	int count = employeeDao.delete(8888);
+	System.out.println("# of delete: " + count);
+}
+```
+
+## Spring Jdbc实现编程式事务
 
 
 

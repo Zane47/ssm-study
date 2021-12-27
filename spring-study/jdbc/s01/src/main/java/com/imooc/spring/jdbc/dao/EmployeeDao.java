@@ -57,8 +57,36 @@ public class EmployeeDao {
         return maps;
     }
 
+    /**
+     * insert
+     */
+    public int insert(Employee employee) {
+        String sql = "insert into employee(eno, ename, salary, dname, hiredate) values(?, ?, ?, ?, ?)";
+
+        int count = jdbcTemplate.update(sql,
+                new Object[]{employee.getEno(), employee.getEName(), employee.getSalary(), employee.getDName(), employee.getHiredate()});
+        return count;
+    }
 
 
+    /**
+     * update
+     */
+    public int update(Employee employee) {
+        String sql = "update employee set ename = ?, salary = ?, dname = ?, hiredate = ? where eno = ?";
+        int count = jdbcTemplate.update(sql,
+                new Object[]{employee.getEName(), employee.getSalary(), employee.getDName(), employee.getHiredate(), employee.getEno()});
+        return count;
+    }
 
+
+    /**
+     * 删除
+     */
+    public int delete(int eno) {
+        String sql = "delete from employee where eno = ?";
+        int count = jdbcTemplate.update(sql, new Object[]{eno});
+        return count;
+    }
 
 }
