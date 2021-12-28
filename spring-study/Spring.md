@@ -5305,13 +5305,195 @@ public void startImportJob() {
 
 <img src="img/Spring/image-20211228103633171.png" alt="image-20211228103633171" style="zoom:67%;" />
 
+### 注解配置声明式事务
 
+```xml
+<!-- 启用注解形式声明式事务 -->
+<tx:annotation-driven transaction-manager="transactionManager"/>
+```
 
+1. xml配置
 
+* 开启注解, <context:component-scan base-package="com.imooc"/>
+* 定义数据源dataSource
+* 定义jdbcTemplate, 注入数据源
+* 定义事务管理器transactionManager, 注入数据源
+* 启动注解形式声明式事务, <tx:annotation-driven transaction-manager="transactionManager"/>
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
 
+    <context:component-scan base-package="com.imooc"/>
 
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url"
+                  value="jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;allowPublicKeyRetrieval=true"/>
+        <property name="username" value="root"/>
+        <property name="password" value="mypwd"/>
+    </bean>
 
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 1. 事务管理器, 用于创建事务, 提交和回滚 -->
+    <!-- 基于数据源的事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!-- 绑定数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 启用注解形式声明式事务 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
+```
+
+2. 配置基础类的注解
+
+略 -> s03
+
+3. 开启事务注解: @Transactional
+
+声明式事务核心注解
+放在类上, 将声明式事务配置应用于当前类所有方法, 默认事务传播为REQUIRED
+
+可以手动指定传播方式: @Transactional(propagation = Propagation.REQUIRES_NEW)
+
+```java
+@Getter
+@Setter
+@Service
+// 声明式事务核心注解
+// 放在类上, 将声明式事务配置应用于当前类所有方法, 默认事务传播为REQUIRED
+@Transactional(propagation = Propagation.REQUIRED)
+public class EmployeeService {
+
+    @Resource
+    private EmployeeDao employeeDao;
+    @Resource
+    private BatchService batchService;
+    public void batchImport() throws Exception {
+        for (int i = 1; i <= 10; i++) {
+            /*if (i == 3) {
+                // throw new Exception("test");
+
+                // 运行时异常则回滚
+                throw new RuntimeException("test");
+            }*/
+            Employee employee = new Employee();
+            employee.setEno(8000 + i);
+            employee.setEName("worker" + i);
+            employee.setSalary(4000F);
+            employee.setDName("市场部");
+            employee.setHiredate(new Date());
+            employeeDao.insert(employee);
+        }
+    }
+    public void startImportJob() {
+        batchService.importJob1();
+
+        if (1 == 1) {
+            throw new RuntimeException("test");
+        }
+
+        batchService.importJob2();
+        System.out.println("batch import done");
+    }
+}
+```
+
+batchImport中手动抛出运行时异常, 测试是否回滚, 查看日志
+
+```
+11:00:53.230 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Initiating transaction rollback
+11:00:53.230 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Rolling back JDBC transaction on Connection [com.mysql.cj.jdbc.ConnectionImpl@1130520d]
+11:00:53.397 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Releasing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@1130520d] after transaction
+```
+
+可以看出运行时异常后出发回滚
+
+4. 新增查询方法, 无需事务
+
+在方法中添加注解
+
+```java
+@Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
+public void findById(Integer eno) {
+    employeeDao.findById(eno);
+}
+```
+
+5. BatchService中添加注解, 两个方法互不影响
+
+```java
+@Service
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+public class BatchService {
+
+    @Resource
+    private EmployeeDao employeeDao;
+    
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void importJob1() {
+        for (int i = 1; i <= 10; i++) {
+            Employee employee = new Employee();
+            employee.setEno(7000 + i);
+            employee.setEName("RD" + i);
+            employee.setSalary(4000F);
+            employee.setDName("研发部");
+            employee.setHiredate(new Date());
+            employeeDao.insert(employee);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void importJob2() {
+        for (int i = 1; i <= 10; i++) {
+            Employee employee = new Employee();
+            employee.setEno(6000 + i);
+            employee.setEName("market" + i);
+            employee.setSalary(4000F);
+            employee.setDName("市场部");
+            employee.setHiredate(new Date());
+            employeeDao.insert(employee);
+        }
+    }
+}
+```
+
+运行batchImport的测试
+
+```java
+@Test
+public void testBatchImport() {
+    employeeService.startImportJob();
+}
+```
+
+测试正确
+
+<img src="img/Spring/image-20211228110634931.png" alt="image-20211228110634931" style="zoom:67%;" />
+
+## 总结
+
+* Spring JDBC与JdbcTemplate对象
+* 编程式事务与声明式事务
+* 声明式事务七种事务传播行为
 
 
 
