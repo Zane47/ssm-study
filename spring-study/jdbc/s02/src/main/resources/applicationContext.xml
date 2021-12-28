@@ -25,7 +25,7 @@
         <property name="url"
                   value="jdbc:mysql://114.55.64.149:3306/imooc-JdbcTemplate?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;allowPublicKeyRetrieval=true"/>
         <property name="username" value="root"/>
-        <property name="password" value=""/>
+        <property name="password" value="mypwd"/>
 
     </bean>
 
@@ -48,7 +48,7 @@
         <property name="employeeDao" ref="employeeDao"/>
     </bean>
 
-    <!-- 1. 事务管理器, 用于创建事务和回滚 -->
+    <!-- 1. 事务管理器, 用于创建事务, 提交和回滚 -->
     <!-- 基于数据源的事务管理器 -->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <!-- 绑定数据源 -->
@@ -59,9 +59,17 @@
            propagation: 事务传播行为, 绝大部分情况下都是REQUIRED代表需要时使用-->
     <tx:advice id="txAdvice" transaction-manager="transactionManager">
         <tx:attributes>
-            <!--目标方法名为batchImport时，启用声明式事务，成功提交，运行时异常回滚-->
+            <!--目标方法名为batchImport时，启用声明式事务，成功则提交，运行时异常则回滚-->
             <tx:method name="batchImport" propagation="REQUIRED"/>
             <tx:method name="batch*" propagation="REQUIRED"/>
+            
+            <!-- 设置findXXX方法不需要使用事务 -->
+            <tx:method name="find*" propagation="NOT_SUPPORTED" read-only="true"/>
+            <tx:method name="get*" propagation="NOT_SUPPORTED" read-only="true"/>
+
+            <!-- 其他选项是否使用事务, 根据具体情况设置 -->
+            <tx:method name="*" propagation="NOT_SUPPORTED" read-only="true"/>
+
         </tx:attributes>
     </tx:advice>
 
@@ -70,5 +78,5 @@
         <aop:pointcut id="pointcut" expression="execution(* com.imooc..*Service.*(..))"/>
         <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>
     </aop:config>
-    
+
 </beans>

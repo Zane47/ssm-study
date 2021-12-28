@@ -4996,10 +4996,10 @@ public void batchImport() throws Exception {
 
 
 
-1. 事务管理器, 用于创建事务和回滚
+1. 事务管理器, 用于创建事务, 提交和回滚
 
 ```xml
-<!-- 1. 事务管理器, 用于创建事务和回滚 -->
+<!-- 1. 事务管理器, 用于创建事务, 提交和回滚 -->
 <!-- 基于数据源的事务管理器 -->
 <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
     <!-- 绑定数据源 -->
@@ -5009,7 +5009,7 @@ public void batchImport() throws Exception {
 
 2. 事务通知配置，决定哪些方法使用事务，哪些方法不使用事务
 
-新增命名空间和schemaLocation: tx和aop
+新增命名空间和schemaLocation: tx和aop. tx: transaction的缩写
 
 ```
 xmlns:tx="http://www.springframework.org/schema/tx"
@@ -5029,7 +5029,7 @@ https://www.springframework.org/schema/aop/spring-aop.xsd
            propagation: 事务传播行为, 绝大部分情况下都是REQUIRED代表需要时使用-->
 <tx:advice id="txAdvice" transaction-manager="transactionManager">
     <tx:attributes>
-        <!--目标方法名为batchImport时，启用声明式事务，成功提交，运行时异常回滚-->
+        <!--目标方法名为batchImport时，启用声明式事务，成功则提交，运行时异常则回滚-->
         <tx:method name="batchImport" propagation="REQUIRED"/>
     </tx:attributes>
 </tx:advice>
@@ -5059,22 +5059,18 @@ https://www.springframework.org/schema/aop/spring-aop.xsd
 
 ```java
 public void batchImport() throws Exception {
-    try {
-        for (int i = 1; i <= 10; i++) {
-            if (i == 3) {
-                throw new Exception("test");
-            }
-            Employee employee = new Employee();
-            employee.setEno(8000 + i);
-            employee.setEName("worker" + i);
-            employee.setSalary(4000F);
-            employee.setDName("市场部");
-            employee.setHiredate(new Date());
-            employeeDao.insert(employee);
+    for (int i = 1; i <= 10; i++) {
+        if (i == 3) {
+            throw new Exception("test");
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+        Employee employee = new Employee();
+        employee.setEno(8000 + i);
+        employee.setEName("worker" + i);
+        employee.setSalary(4000F);
+        employee.setDName("市场部");
+        employee.setHiredate(new Date());
+        employeeDao.insert(employee);
+    } 
 }
 ```
 
@@ -5093,9 +5089,90 @@ public void testBatchInsert() throws Exception {
 
 查看日志:
 
+发现还是插入了, 排查后发现因为抛出的不是运行时异常, 务必注意:
+
+只有**运行时异常**才回滚
+
+```java
+public void batchImport() throws Exception {
+    for (int i = 1; i <= 10; i++) {
+        if (i == 3) {
+            // throw new Exception("test");
+
+            // 运行时异常则回滚
+            throw new RuntimeException("test");
+        }
+        Employee employee = new Employee();
+        employee.setEno(8000 + i);
+        employee.setEName("worker" + i);
+        employee.setSalary(4000F);
+        employee.setDName("市场部");
+        employee.setHiredate(new Date());
+        employeeDao.insert(employee);
+    }
+}
 ```
 
+日志:
+
 ```
+09:30:26.603 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Initiating transaction rollback
+09:30:26.603 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Rolling back JDBC transaction on Connection [com.mysql.cj.jdbc.ConnectionImpl@141e5bef]
+09:30:26.763 [main] DEBUG org.springframework.jdbc.datasource.DataSourceTransactionManager - Releasing JDBC Connection [com.mysql.cj.jdbc.ConnectionImpl@141e5bef] after transaction
+```
+声明式事务: 配置的形式, 不修改源代码的情况下, 进行事务的控制
+
+---
+
+* 如果方法中有多个方法, 如何定义他是否使用事务
+
+tx:method运行使用通配符的方式来进行配置, 例如:
+
+```xml
+<tx:method name="batch*" propagation="REQUIRED"/>
+```
+
+* 如果是不需要使用事务的方法, 例如查询事务
+
+```xml
+<tx:method name="find*" propagation="NOT_SUPPORTED" read-only="true"/>
+<tx:method name="get*" propagation="NOT_SUPPORTED" read-only="true"/>
+```
+
+find: 查找
+
+get: 数据库获取单个对象, 或者获取对象内的属性
+
+* 其他选项
+
+```xml
+<!-- 其他选项是否使用事务, 根据具体情况设置 -->
+<tx:method name="*" propagation="NOT_SUPPORTED" read-only="true"/>
+```
+
+### 区别
+
+务必注意, 编程式事务手动做commit和rollback
+
+而声明式事务, 成功则提交, 发生**运行时错误**才rollback
+
+### 事务的传播行为
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
