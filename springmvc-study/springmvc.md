@@ -21,6 +21,148 @@ Restful开发风格
 | JSON序列化            | 通过响应输出数据                    | 5        |
 | Restful的**跨域**问题 | 分析跨域问题的来源与解决办法        | 5        |
 
+# Spring MVC
+
+MVC: 架构模式
+
+Model(模型), View(视图), Controller(控制器)
+
+<img src="img/springmvc/image-20211228190749625.png" alt="image-20211228190749625" style="zoom:50%;" />
+
+MVC中view不允许直接访问后端model
+
+
+
+
+
+
+
+
+
+
+
+---
+
+* Spring MVC是Spring体系的轻量级Web MVC框架
+* Spring MVC的核心Controller控制器，用于处理请求，产生响应
+* Spring MVC基于Spring IOC容器运行，所有对象被IOC管理
+
+
+
+
+
+## Spring 5.X
+
+* Spring 5.×最低要求JDK8与J2EE 7(Servlet 3.1/Tomcat 8.5+)
+* Spring5.x支持JDK8/9,可以使用新特性
+* Spring5.x最重要的新特性支持**响应式编程**
+
+响应式编程: 根据事件来, 当触发了某个事件, 自动执行某段代码
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# RESTful
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# SpringMVC拦截器
+
+
+
+-> 过滤器
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
