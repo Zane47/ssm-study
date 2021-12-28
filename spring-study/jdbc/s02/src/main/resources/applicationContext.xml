@@ -46,7 +46,15 @@
 
     <bean id="employeeService" class="com.imooc.spring.jdbc.service.EmployeeService">
         <property name="employeeDao" ref="employeeDao"/>
+        <property name="batchService" ref="batchService"/>
     </bean>
+
+    
+    <bean id="batchService" class="com.imooc.spring.jdbc.service.BatchService">
+        <property name="employeeDao" ref="employeeDao"/>
+    </bean>
+
+
 
     <!-- 1. 事务管理器, 用于创建事务, 提交和回滚 -->
     <!-- 基于数据源的事务管理器 -->
@@ -67,8 +75,12 @@
             <tx:method name="find*" propagation="NOT_SUPPORTED" read-only="true"/>
             <tx:method name="get*" propagation="NOT_SUPPORTED" read-only="true"/>
 
+            <!-- 新建事务, 如果当前存在事务, 把当前事务挂起 -->
+            <tx:method name="importJob1" propagation="REQUIRES_NEW"/>
+            <tx:method name="importJob2" propagation="REQUIRES_NEW"/>
+
             <!-- 其他选项是否使用事务, 根据具体情况设置 -->
-            <tx:method name="*" propagation="NOT_SUPPORTED" read-only="true"/>
+            <tx:method name="*" propagation="REQUIRED"/>
 
         </tx:attributes>
     </tx:advice>

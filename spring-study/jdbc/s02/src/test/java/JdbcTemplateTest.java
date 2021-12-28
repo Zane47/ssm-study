@@ -100,7 +100,13 @@ public class JdbcTemplateTest {
     }
 
 
-
+    /**
+     *
+     */
+    @Test
+    public void testBatchImport() {
+        employeeService.startImportJob();
+    }
 
 
 }

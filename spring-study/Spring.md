@@ -5148,6 +5148,24 @@ get: 数据库获取单个对象, 或者获取对象内的属性
 ```xml
 <!-- 其他选项是否使用事务, 根据具体情况设置 -->
 <tx:method name="*" propagation="NOT_SUPPORTED" read-only="true"/>
+<tx:method name="*" propagation="REQUIRED"/>
+```
+
+整体的xml
+
+```xml
+<tx:advice id="txAdvice" transaction-manager="transactionManager">
+    <tx:attributes>
+        <!--目标方法名为batchImport时，启用声明式事务，成功则提交，运行时异常则回滚-->
+        <tx:method name="batchImport" propagation="REQUIRED"/>
+        <tx:method name="batch*" propagation="REQUIRED"/>
+        <!-- 设置findXXX方法不需要使用事务 -->
+        <tx:method name="find*" propagation="NOT_SUPPORTED" read-only="true"/>
+        <tx:method name="get*" propagation="NOT_SUPPORTED" read-only="true"/>
+        <!-- 其他选项是否使用事务, 根据具体情况设置 -->
+        <tx:method name="*" propagation="REQUIRED"/>
+    </tx:attributes>
+</tx:advice>
 ```
 
 ### 区别
@@ -5158,23 +5176,134 @@ get: 数据库获取单个对象, 或者获取对象内的属性
 
 ### 事务的传播行为
 
+* 事务传播行为是指多个拥有事务的方法在嵌套调用时的事务控制方式
+* XML:  <tx:method name="..." propagation="REQUIRED"/>
+* 注解: @Transactional(propagation=Propagation.REQUIRED)
 
 
 
+事务传播行为七种类型: PROPAGATION
 
+| 事务传播类型          | 说明                                                         |
+| --------------------- | ------------------------------------------------------------ |
+| REQUIRED <br />(默认) | 如果当前没有事务, 就新建一个事务, 如果已经存在一个事务中, 加入到这个事务中. |
+| SUPPORTS              | 支持当前事务, 如果当前没有事务, 就以非事务方式执行           |
+| MANDATORY             | 使用当前的事务, 如果当前没有事务, 就抛出异常                 |
+| REQUIRES NEW          | 新建事务, 如果当前存在事务, 把当前事务挂起                   |
+| NOT SUPPORTED         | 以非事务方式执行操作, 如果当前存在事务, 就把当前事务挂起     |
+| NEVER                 | 以非事务方式执行, 如果当前存在事务, 则抛出异常. (几乎不用)   |
+| NESTED                | 如果当前存在事务, 则在嵌套事务内执行.<br />如果当前没有事务, 则执行与PROPAGATION REQUIRED类似的操作 |
 
+---
 
+举例说明:
 
+1. 创建用于批量导入的服务BatchService
 
+```java
+package com.imooc.spring.jdbc.service;
+import com.imooc.spring.jdbc.dao.EmployeeDao;
+import com.imooc.spring.jdbc.entity.Employee;
+import lombok.Getter;
+import lombok.Setter;
+import java.util.Date;
+@Getter
+@Setter
+public class BatchService {
+    private EmployeeDao employeeDao;
+    public void importJob1() {
+        for (int i = 1; i <= 10; i++) {
+            Employee employee = new Employee();
+            employee.setEno(7000 + i);
+            employee.setEName("RD" + i);
+            employee.setSalary(4000F);
+            employee.setDName("研发部");
+            employee.setHiredate(new Date());
+            employeeDao.insert(employee);
+        }
+    }
+    public void importJob2() {
+        for (int i = 1; i <= 10; i++) {
+            Employee employee = new Employee();
+            employee.setEno(6000 + i);
+            employee.setEName("market" + i);
+            employee.setSalary(4000F);
+            employee.setDName("市场部");
+            employee.setHiredate(new Date());
+            employeeDao.insert(employee);
+        }
+    }
+}
+```
 
+2. EmployeeService中添加属性
 
+```java
+private BatchService batchService;
 
+public void startImportJob() {
+    batchService.importJob1();
+    batchService.importJob2();
+    System.out.println("batch import done");
+}
+```
 
+3. 设置bean和注入属性
 
+```xml
+<bean id="employeeService" class="com.imooc.spring.jdbc.service.EmployeeService">
+    <property name="employeeDao" ref="employeeDao"/>
+    <property name="batchService" ref="batchService"/>
+</bean>
 
+<bean id="batchService" class="com.imooc.spring.jdbc.service.BatchService">
+    <property name="employeeDao" ref="employeeDao"/>
+</bean>
+```
 
+4. test
 
+```java
+@Test
+public void testBatchImport() {
+    employeeService.startImportJob();
+}
+```
 
+运行后发现数据都被成功插入
+
+5. 在EmployeeService中的startImportJob方法中手动抛出运行时异常
+
+```java
+public void startImportJob() {
+    batchService.importJob1();
+    if (1 == 1) {
+        throw new RuntimeException("test");
+    }
+    batchService.importJob2();
+    System.out.println("batch import done");
+}
+```
+
+可以看出在抛出错误之后, 数据库中咩有插入数据, 但是代码中importJob1已经运行完成了, 应该是要插入数据的, 为什么没有插入?
+
+原因就在于事务的传播方式的设置, 这里设置的是PROPAGATION_REQUIRED(如果当前没有事务, 就新建一个事务, 如果已经存在一个事务中, 加入到这个事务中)
+
+示意图:
+
+<img src="img/Spring/image-20211228101820738.png" alt="image-20211228101820738" style="zoom: 67%;" />
+
+主方法的事务1, 在importJob1运行的事务2加入事务1, 然后事务2结束之后, (都在事务1中), 抛出了异常, 那么就整体就回滚, 不会向数据库中插入数据.
+
+* 如果我们想要互不影响怎么办?
+
+使用PROPAGATION_REQUIRED_NEW(新建事务, 如果当前存在事务, 把当前事务挂起)
+
+<img src="img/Spring/image-20211228102332876.png" alt="image-20211228102332876" style="zoom: 67%;" />
+
+可以看出这样子互不干扰, 也就可以插入了
+
+<img src="img/Spring/image-20211228103633171.png" alt="image-20211228103633171" style="zoom:67%;" />
 
 
 

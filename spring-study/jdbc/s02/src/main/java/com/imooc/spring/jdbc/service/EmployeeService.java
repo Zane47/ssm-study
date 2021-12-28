@@ -14,6 +14,8 @@ public class EmployeeService {
 
     private EmployeeDao employeeDao;
 
+    private BatchService batchService;
+
     public void batchImport() throws Exception {
         for (int i = 1; i <= 10; i++) {
             /*if (i == 3) {
@@ -30,6 +32,17 @@ public class EmployeeService {
             employee.setHiredate(new Date());
             employeeDao.insert(employee);
         }
+    }
+
+    public void startImportJob() {
+        batchService.importJob1();
+
+        if (1 == 1) {
+            throw new RuntimeException("test");
+        }
+
+        batchService.importJob2();
+        System.out.println("batch import done");
     }
 
 }
