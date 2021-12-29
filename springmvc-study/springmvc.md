@@ -295,6 +295,127 @@ load-on-startup: 在Web应用启动时自动创建Spring IoC容器, 并初始化
 </beans>
 ```
 
+启动注解模式, mvc注解. 排除静态资源
+
+```xml
+<!-- context:component-scan标签作用
+        在Spring IoC初始化过程中，自动创生并营理com.imooc.springmvc及子包中
+        拥有以下注解的对象.
+        @Repository
+        @Service
+        @Controller
+        @Component
+    -->
+<context:component-scan base-package="com.imooc.springmvc"/>
+
+ <!-- 启用Spring MVC的注解开发模式 -->
+<mvc:annotation-driven/>
+
+<!-- 将图片/JS/CSs等静态资源排除在外，可提高执行效率 -->
+<mvc:default-servlet-handler/>
+```
+
+mvc:default-servlet-handler. 当http请求发过来之后, springmvc发现是静态资源, 就不会处理
+
+---
+
+applicationContext.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!-- context:component-scan标签作用
+        在Spring IoC初始化过程中，自动创生并营理com.imooc.springmvc及子包中
+        拥有以下注解的对象.
+        @Repository
+        @Service
+        @Controller
+        @Component
+    -->
+    <context:component-scan base-package="com.imooc.springmvc"/>
+
+    <!-- 启用Spring MVC的注解开发模式 -->
+    <mvc:annotation-driven/>
+
+    <!-- 将图片/JS/CSS等静态资源排除在外，可提高执行效率 -->
+    <mvc:default-servlet-handler/>
+</beans>
+```
+
+4. 开发Controller
+
+类添加注解@Controller表明是Controller
+
+@GetMapping: 将当前方法绑定某个get请求url
+
+@ResponseBody: 直接向响应输出字符串数据，不跳转页面
+
+```java
+package com.imooc.springmvc.controller;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+/**
+ * 处理http请求, 并返回相应
+ */
+@Controller
+public class TestController {
+    // GetMapping: 将当前方法绑定某个get请求url
+    @GetMapping("/t")
+    @ResponseBody // 直接向响应输出字符串数据，不跳转页面
+    public String test() {
+        return "hello spring mvc";
+    }
+}
+```
+
+5. 调整tomcat
+
+Edit Configuration -> Deployment -> Edit. 调整部署
+
+默认情况下, 底层依赖的jar包不会自动放到当前的发布目录中, 需要手动将maven依赖放入.
+
+![image-20211229212649274](img/springmvc/image-20211229212649274.png)
+
+回到Deployment, Application Context配置/即可, 简化web的访问, 默认路径为: http://localhost:8080/
+
+![image-20211229212851549](img/springmvc/image-20211229212851549.png)
+
+6. 测试
+
+直接在浏览器地址中输入: http://localhost:8080/t
+
+@GetMapping注解将test方法绑定到/t的请求响应
+
+只需要在方法上添加注解就可以完成web请求的处理和返回
+
+---
+
+示意图:
+
+<img src="img/springmvc/image-20211229212355518.png" alt="image-20211229212355518" style="zoom:67%;" />
+
+`URL-Pattern:/`: 拦截所有请求, 请求会被发送到DispatcherServlet -> 当前访问地址是/t, 在方法中找哪个方法上映射了/t -> test方法处理请求 -> return String -> 返回响应
+
+## Controller
+
+
+
+
+
+
+
 
 
 
