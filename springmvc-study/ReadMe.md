@@ -1,6 +1,14 @@
 # SpringMVC入门与数据绑定
 
-## spring-mvc
+## first-mvc
+
+mvc入门, 
+
+idea环境下, 创建Maven webapp环境
+
+
+
+
 
 
 
