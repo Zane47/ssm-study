@@ -23,33 +23,29 @@ Restful开发风格
 
 # Spring MVC
 
+## 简介
+
 MVC: 架构模式
 
 Model(模型), View(视图), Controller(控制器)
 
 <img src="img/springmvc/image-20211228190749625.png" alt="image-20211228190749625" style="zoom:50%;" />
 
-MVC中view不允许直接访问后端model
+View: 界面, 与用户进行交互
 
+Model: 数据, 业务逻辑部分
 
+MVC中, 如果View中的数据来自于Model, 并不由View直接去调用获取到Model中的数据, 而是需要通过Controller作为中介. 
 
+Controller是MVC中最重要的部分, 接收View中传入的数据, 根据数据调用后端的业务逻辑Model得到结果, 再通过Controller返回给View
 
-
-
-
-
-
-
+MVC中View和Model没有直接的关系, 需要Controller来控制. Servlet就是Controller技术, 但是不太方便, 所以提供Spring MVC更加简化Web应用程序的开发
 
 ---
 
-* Spring MVC是Spring体系的轻量级Web MVC框架
-* Spring MVC的核心Controller控制器，用于处理请求，产生响应
+* Spring MVC是Spring体系的轻量级Web MVC框架. 用来替代j2e的Servlet, 让web开发更加简单
+* Spring MVC的核心Controller控制器，用于处理请求，产生响应. View不允许直接调用Model, 需要Controller作为中间者来调用, 好处: 界面和后端业务逻辑解耦, 提高可维护性
 * Spring MVC基于Spring IOC容器运行，所有对象被IOC管理
-
-
-
-
 
 ## Spring 5.X
 
