@@ -61,9 +61,104 @@ MVC中View和Model没有直接的关系, 需要Controller来控制. Servlet就�
 
 idea环境下创建Maven WebApp: 
 
-1. 将工程设计web开发
+### 将工程设置为web开发
 
-在Project Structure -> facets
+1. 在Project Structure -> facets -> + web
+
+<img src="img/springmvc/image-20211229152459600.png" alt="image-20211229152459600" style="zoom:67%;" />
+
+2. 设置Web地址
+
+<img src="img/springmvc/image-20211229153306716.png" alt="image-20211229153306716" style="zoom: 33%;" />
+
+* 设置Deployment Descriptors()
+
+其中: 
+
+Web Module Deployment Descriptor (web.xml): first-springmvc\src\main\webapp\WEB-INF\web.xml 
+
+Deployment descriptor version : 3.1. SpringMVC中Servlet的最低版本就是3.1
+
+* 设置Web Resource Directories(存储web页面地址)
+
+Web Resource Directory: first-springmvc\src\main\webapp
+
+3. 创建Facet
+
+点击"Create Artifact"自动创建
+
+![image-20211229153430445](img/springmvc/image-20211229153430445.png)
+
+Artifact看成运行的方式
+
+![image-20211229153610106](img/springmvc/image-20211229153610106.png)
+
+Web Application: Exploded. 运行时使用目录的方式对web应用进行运行
+
+如果改成Archive方式, 最后应用就会打包成war包来运行
+
+开发环境下, 一般都选择Exploded
+
+4. 添加html测试页
+
+webapp下新增index.html页面, html5
+
+```xml
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>Hello, spring-mvc</h1>
+</body>
+</html>
+```
+
+---
+
+启动项目, 展示网页
+
+5. 配置tomcat
+
+tomcat版本至少8.5, -> apache-tomcat-8.5.40
+
+![image-20211229154754259](img/springmvc/image-20211229154754259.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
