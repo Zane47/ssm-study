@@ -205,6 +205,8 @@ DispatcherServlet是Spring MVc最核心的对象, 用于拦截Http请求, 并根
 
 * DispatcherServlet添加额外的配置
 
+load-on-startup: 在Web应用启动时自动创建Spring IoC容器, 并初始化DispatcherServlet.如果没有这句话, 会在第一次访问url的时候创建. 因为要初始化IOC容器, 所以DispatcherServlet需要知道applicationContext.xml的路径 -> contextConfigLocation
+
 ```xml
 <!-- DispatcherServlet -->
 <servlet>
