@@ -71,7 +71,7 @@ idea环境下创建Maven WebApp:
 
 <img src="img/springmvc/image-20211229153306716.png" alt="image-20211229153306716" style="zoom: 33%;" />
 
-* 设置Deployment Descriptors()
+* 设置Deployment Descriptors
 
 其中: 
 
@@ -122,27 +122,176 @@ webapp下新增index.html页面, html5
 
 5. 配置tomcat
 
+* Add Configuration -> Tomcat Server -> Local
+
 tomcat版本至少8.5, -> apache-tomcat-8.5.40
 
 ![image-20211229154754259](img/springmvc/image-20211229154754259.png)
 
+* 配置Application Server:
 
+<img src="img/springmvc/image-20211229195430603.png" alt="image-20211229195430603" style="zoom:67%;" />
 
+* 添加Deployment, 添加web应用
 
+![image-20211229195556625](img/springmvc/image-20211229195556625.png)
 
+这里有上下文设置, 对应到访问的URL: http://localhost:8080/first_springmvc_Web_exploded/
 
+如果配置/, 那就是localhost
 
+设置port为80: http://localhost:80/
 
+![image-20211229200145296](img/springmvc/image-20211229200145296.png)
 
+* 设置热部署
 
+<img src="img/springmvc/image-20211229195711076.png" alt="image-20211229195711076" style="zoom:67%;" />
 
+### Spring mvc具体配置
 
+1. Maven依赖spring-webmvc
 
+2. web.xml配置DispatcherServlet
 
+3. 配置applicationContext的mvc标记
 
+4. 开发测试Controller
 
+---
 
+1. maven添加spring-webmvc依赖
 
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-webmvc</artifactId>
+    <version>5.1.9.RELEASE</version>
+</dependency>
+```
+
+2. web.xml中添加配置DispatcherServlet(对所有请求进行拦截)
+
+DispatcherServlet是Spring MVc最核心的对象, 用于拦截Http请求, 并根据请求的URL调用与之对应的Controller方法，来完成Http请求的处理. 中转站
+
+类比前台, 接待客户, 接收邮件, 首先面向前台, 然后前台根据不同的情况联系内部不同的人来进行处理. 合同->法务部, 客户->市场部. 外部环境和内部人员的对接窗口, 所有的进出都需要通过前台完成. DispatcherServlet就是前台, Controller就是具体的部门处理人员
+
+* web.xml中添加DispatcherServlet
+
+```xml
+<!-- DispatcherServlet -->
+<servlet>
+    <servlet-name>springmvc</servlet-name>
+    <!--
+            DispatcherServlet是Spring MVc最核心的对象
+            DispatcherServlet用于拦截Http请求，
+            并根据请求的URL调用与之对应的Controller方法，来完成Http请求的处理
+        -->
+
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+</servlet>
+```
+
+* 添加servlet-mapping
+
+```xml
+<servlet-mapping>
+    <servlet-name>springmvc</servlet-name>
+    <!-- 写上url请求的根, 那么所有的请求都会通过DispatcherServlet来分发 -->
+    <!-- / 代表拦截所有请求-->
+    <url-pattern>/</url-pattern>
+</servlet-mapping>
+```
+
+* DispatcherServlet添加额外的配置
+
+```xml
+<!-- DispatcherServlet -->
+<servlet>
+    <servlet-name>springmvc</servlet-name>
+    <!--
+            DispatcherServlet是Spring MVc最核心的对象
+            DispatcherServlet用于拦截Http请求，
+            并根据请求的URL调用与之对应的Controller方法，来完成Http请求的处理
+        -->
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+
+    <!-- applicationContext.xml -->
+    <init-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.xml</param-value>
+    </init-param>
+    <!-- 额外的选项 -->
+    <!--
+            在Web应用启动时自动创建Spring IoC容器，
+            并初始化DispatcherServlet.
+            如果没有这句话, 会在第一次访问url的时候创建
+            因为要初始化IOC容器, 所以DispatcherServlet需要知道applicationContext.xml的路径
+        -->
+    <load-on-startup>0</load-on-startup>
+</servlet>
+```
+
+---
+
+整体的web.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+    <!-- DispatcherServlet -->
+    <servlet>
+        <servlet-name>springmvc</servlet-name>
+        <!--
+            DispatcherServlet是Spring MVc最核心的对象
+            DispatcherServlet用于拦截Http请求，
+            并根据请求的URL调用与之对应的Controller方法，来完成Http请求的处理
+        -->
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!-- applicationContext.xml -->
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:applicationContext.xml</param-value>
+        </init-param>
+        <!-- 额外的选项 -->
+        <!--
+            在Web应用启动时自动创建Spring IoC容器，
+            并初始化DispatcherServlet.
+            如果没有这句话, 会在第一次访问url的时候创建
+            因为要初始化IOC容器, 所以DispatcherServlet需要知道applicationContext.xml的路径
+        -->
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>springmvc</servlet-name>
+        <!-- 写上url请求的根, 那么所有的请求都会通过DispatcherServlet来分发 -->
+        <!-- / 代表拦截所有请求-->
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+</web-app>
+```
+
+3. 添加applicationContext.xml, 注意需要配置mvc的命名空间: xmlns:mvc
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+</beans>
+```
 
 
 
