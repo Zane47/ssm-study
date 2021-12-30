@@ -408,11 +408,127 @@ Edit Configuration -> Deployment -> Edit. 调整部署
 
 `URL-Pattern:/`: 拦截所有请求, 请求会被发送到DispatcherServlet -> 当前访问地址是/t, 在方法中找哪个方法上映射了/t -> test方法处理请求 -> return String -> 返回响应
 
-## Controller
+## Spring MVC数据绑定
 
+### URL Mapping(URL 映射)
 
+* URL Mapping指将URL与Controller方法绑定
 
+* 通过将URL与方法绑定, SpringMVC便可通过Tomcat对外暴露服务
 
+对于Web应用, 对外暴露的接口都是url网址, 通过url执行后端的程序代码
+
+#### URL Mapping注解
+
+- @RequestMapping-通用绑定
+
+* @GetMapping-绑定Get请求
+
+* @PostMapping-绑定Post请求
+
+---
+
+#### GetMapping和PostMapping
+
+这两个注解通常放在方法上
+
+1. 新建URLMappingController, 其中添加get和post的Mapping
+
+```java
+package com.imooc.springmvc.controller;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+@Controller
+public class URLMappingController {
+    @GetMapping("/g")
+    @ResponseBody
+    public String getMapping() {
+        return "this is get method";
+    }
+    @PostMapping("/p")
+    @ResponseBody
+    public String postMapping() {
+        return "this is post method";
+    }
+}
+```
+
+2. 运行tomcat
+
+可以查看当访问对应的url: `http://localhost:8080/g` 的时候, 会return响应
+
+当访问`http://localhost:8080/p`的时候, 弹出错误:405-Method Not Allowed
+
+![image-20211230094019940](img/springmvc/image-20211230094019940.png)
+
+浏览器中直接输入地址, 是get请求, 而程序映射的是post的请求, 请求类型不一致. 405 -> 请求类型错误
+
+3. post请求访问
+
+post请求如何访问, 可以通过html的表单. 
+
+在webapp/index.html中添加表单
+
+```html
+<body>
+    <form action="/p" method="post">
+        <input type="submit" value="提交">
+    </form>
+</body>
+```
+
+action绑定到/p上
+
+运行tomcat, 点击提交按钮后, 发到postMapping上, 返回数据. Post请求生效
+
+#### RequestMapping
+
+全局通用的请求映射
+
+* 作用在类上就是给所有的get, postMapping添加访问前缀
+
+* 作用在方法上, 不用区分get/post请求, 所有的请求都可以访问到该方法 -> 不建议使用, 因为在实际开发中每个方法都应该有明确的访问方式. 作用在方法上, 还是优先使用getMapping和PostMapping
+  当然也可以通过参数Method来指定使用的是什么请求类型. 
+  `@RequestMapping(method = RequestMethod.GET, value = "/q")`相当于`@GetMapping("/q")`
+
+---
+
+注解通常放在类上, 因为url会有多级结构, 例如所有的映射地址都要有前缀`um`, 如果类中方法很多, 则每个方法的注解都要加前缀. 所以统一在RequestMapping中设置
+
+```java
+@RequestMapping("/um")
+public class URLMappingController {}
+```
+
+这样子类中方法访问的时候都需要添加对应的前缀再加上方法上的url才可以访问
+
+添加后update tomcat, 再访问原来的地址就会404
+
+![image-20211230100237453](img/springmvc/image-20211230100237453.png)
+
+需要在地址上添加前缀um: `http://localhost:8080/um/g`
+
+### Controller接收请求参数
+
+例如:用户登陆的用户名和pwd.
+
+#### 接收参数的常见做法
+
+* 使用Controller方法参数接收
+
+* 使用Java Bean接收数据
+
+#### Controller方法接收参数
+
+<img src="img/springmvc/image-20211230102922342.png" alt="image-20211230102922342" style="zoom:50%;" />
+
+方法的参数名称和提交数据的参数名称完全一致. 
+
+SpringMVC允许进行数据转换, 如果pwd只允许输入数字, 那么可以进行强制类型转换成Long
+
+``
 
 
 
