@@ -516,19 +516,91 @@ public class URLMappingController {}
 
 #### 接收参数的常见做法
 
-* 使用Controller方法参数接收
+* 使用Controller**方法参数**接收 -> post请求接收参数, get请求接收参数
 
-* 使用Java Bean接收数据
+* 使用Java Bean接收请求参数
 
-#### Controller方法接收参数
+#### post请求接收参数
 
 <img src="img/springmvc/image-20211230102922342.png" alt="image-20211230102922342" style="zoom:50%;" />
 
-方法的参数名称和提交数据的参数名称完全一致. 
+**方法的参数名称** 和 **提交数据的参数名称**完全一致. 
 
-SpringMVC允许进行数据转换, 如果pwd只允许输入数字, 那么可以进行强制类型转换成Long
+SpringMVC允许进行数据转换, 如果前台保证pwd只允许输入数字, 那么可以进行强制类型转换成Long
 
-``
+新增方法getUserNamePwd, password修改成Long类
+
+```java
+@PostMapping("/m1")
+@ResponseBody
+public String getUserNamePwd(String username, Long password) {
+    System.out.println(username + ":" + password);
+    return username + ":" + password;
+}
+```
+
+在index.xml中添加input:
+
+```xml
+<body>
+    <form action="/um/m1" method="post">
+        <input name="username"/><br/>
+        <input name="password"/><br/>
+        <input type="submit" value="submit">
+    </form>
+</body>
+```
+
+注意这里的input name务必和后台方法中的参数名称一致, spring mvc会完成数据的注入
+
+`String username` 和 `<input name="username"/>`
+
+这里输入用户名, 密码(纯数字)会返回对应页面.
+
+这个比Servlet的方式简单, 如果是Servlet获取参数, 需要使用request.getParamter()来进行获取
+
+---
+
+这里前台index中没有做任何校验是否是数字, 默认直接传给mvc, 如果我传入的password有字母, 则会报错: 400, Bad Request
+
+![image-20211230135154737](img/springmvc/image-20211230135154737.png)
+
+报错日志:
+
+```
+org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver.logException Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; nested exception is java.lang.NumberFormatException: For input string: "asd"]
+```
+
+所以前台增加表单验证, 校验是否是纯数字 -> 后续看到400错误需要想到是否是因为前台校验不够严谨导致.
+
+#### get请求接收参数
+
+get请求如何获取参数, url: `http://localhost:8080/um/g?manager_name=lily`
+
+可以看到这里传入的参数是manager_name, 不符合Java中的驼峰命名, managerName
+
+这里使用@RequestParam注解, 书写在参数之前, 同时增加要映射的原始参数.
+
+---
+
+完整含义: 作为请求中的参数manager_name, 在运行时动态注入到后面的参数managerName中
+
+```java
+@GetMapping("/g")
+@ResponseBody
+public String getMapping(@RequestParam("manager_name") String managerName) {
+    System.out.println("managerName: " + managerName);
+    return "this is get method. " + managerName;
+}
+```
+
+#### 使用Java Bean接收请求参数
+
+
+
+
+
+
 
 
 

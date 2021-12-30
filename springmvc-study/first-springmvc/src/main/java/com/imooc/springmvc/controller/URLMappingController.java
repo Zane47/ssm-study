@@ -17,8 +17,9 @@ public class URLMappingController {
 
     @GetMapping("/g")
     @ResponseBody
-    public String getMapping() {
-        return "this is get method";
+    public String getMapping(@RequestParam("manager_name") String managerName) {
+        System.out.println("managerName: " + managerName);
+        return "this is get method. " + managerName;
     }
 
     @PostMapping("/p")
@@ -31,6 +32,8 @@ public class URLMappingController {
     @PostMapping("/m1")
     @ResponseBody
     public String getUserNamePwd(String username, Long password) {
+        // servlet的参数获取, 需要使用: request.getParamter(). mvc的简单
+
         System.out.println(username + ":" + password);
         return username + ":" + password;
     }
