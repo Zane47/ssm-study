@@ -524,7 +524,11 @@ public class URLMappingController {}
 
 <img src="img/springmvc/image-20211230102922342.png" alt="image-20211230102922342" style="zoom:50%;" />
 
-**方法的参数名称** 和 **提交数据的参数名称**完全一致. 
+**方法的参数名称** 和 **提交数据的参数名称**完全一致.  
+
+-> 或者使用@RequestParam来做value(前台参数名称)和default赋值
+
+---
 
 SpringMVC允许进行数据转换, 如果前台保证pwd只允许输入数字, 那么可以进行强制类型转换成Long
 
@@ -669,7 +673,41 @@ public String postMapping1(User user, String username) {
 
 所以, 如果接收的参数较少, 可以直接使用参数方式来接收请求参数. 如果参数很多, 可以通过新建实体类, Java Bean注入的方式来进行参数接收.
 
-### 复合数据获取
+#### @RequestParam注入默认参数
+
+在下节的from工程中, 对于前台传递的参数获取, 可以通过下面的方式.
+
+```java
+@PostMapping("/apply")
+@ResponseBody
+public String apply(String name, String course, Integer[] purpose) {}
+```
+
+这里函数签名的参数名称一定要和前台的参数名称一致, 
+
+但是可以通过@RequestParam
+
+```java
+@PostMapping("/apply")
+@ResponseBody
+public String apply(@RequestParam(value = "n", defaultValue = "anonymous") String name, String course, Integer[] purpose) {
+```
+
+这里就是对前台传入的参数`n`, 如果不存在就设置默认值anonymous, 然后赋值到name中
+
+因为前台咩有该参数, 那么name就一致是anonymous
+
+---
+
+```java
+@PostMapping("/apply")
+@ResponseBody    
+public String apply(@RequestParam(value = "name", defaultValue = "anonymous") String duck, String course, Integer[] purpose) {
+```
+
+这里就可以@RequestParam接收前台的参数到controller中的方法参数中, 不需要参数名称和接收的参数名称一致
+
+### 获取复合数据
 
 调查问卷: 
 
@@ -679,47 +717,222 @@ public String postMapping1(User user, String username) {
 
 * 利用数组或者List接收请求中的复合数据
 
-* 利用@RequestParam为参数设置默认值
+* 利用@RequestParam为参数设置默认值 -> 上节中讲解
 
-* 使用Map对象接收请求参数及注意事项
+* 使用Map对象接收请求参数及注意事项 -> map无法接收复合数据
 
+---
 
+预备好index.html
 
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学员调查问卷</title>
+    <style>
+        .container {
+            position: absolute;
+            border: 1px solid #cccccc;
+            left: 50%;
+            top: 50%;
+            width: 400px;
+            height: 300px;
+            margin-left: -200px;
+            margin-top: -150px;
+            box-sizing: border-box;
+            padding: 10px;
+        }
 
+        h2 {
+            margin: 10px 0px;
+            text-align: center;
+        }
 
+        h3 {
+            margin: 10px 0px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>学员调查问卷</h2>
+    <form action="./apply" method="post">
+        <h3>您的姓名</h3>
+        <input name="name" class="text" style="width: 150px">
+        <h3>您正在学习的技术方向</h3>
+        <select name="course" style="width: 150px">
+            <option value="java">Java</option>
+            <option value="h5">HTML5</option>
+            <option value="python">Python</option>
+            <option value="php">PHP</option>
+        </select>
+        <div>
+            <h3>您的学习目的：</h3>
+            <input type="checkbox" name="purpose" value="1">就业找工作
+            <input type="checkbox" name="purpose" value="2">工作要求
+            <input type="checkbox" name="purpose" value="3">兴趣爱好
+            <input type="checkbox" name="purpose" value="4">其他
+        </div>
+        <div style="text-align: center;padding-top:10px">
+            <input type="submit" value="提交" style="width:100px">
+        </div>
+    </form>
 
+</div>
+</body>
+</html>
+```
 
+观察看这里的`<form action="./apply" method="post">`. 这里的action后的网址带有`.`, 这是什么?
 
+* URI绝对路径和相对路径
 
+`./`: 当前路径
 
+<img src="img/springmvc/image-20211230150927019.png" alt="image-20211230150927019" style="zoom:67%;" />
 
+如果路径以`/`开头, 必然是绝对路径. 后面是应用的上下文
 
+上图中的错误情况就是绝对路径, 必须要加上`/project`
 
+回到案例中的`<form action="./apply" method="post">`
 
+使用相对路径
 
+`<form action="./apply" method="post">`
 
+页面地址: `http://localhost:8080/[上下文路径]/form.html`
 
+提交地址: `http://localhost:8080/[上下文路径]/apply`
 
+因为使用了相对路径, 不管前面的上下文路径是什么, 只需要保证提交地址apply和当前的html在同一个层级就可以了, 请求必然会被送达. 使用相对路径可以降低工程对web配置的依赖.
 
+#### 利用数组或者List接收请求中的复合数据
 
+使用数组接收参数
 
+```java
+@Controller
+public class FormController {
+    /**
+     * 数组方法接收参数
+     */
+    @PostMapping("/apply")
+    @ResponseBody
+    public String apply(@RequestParam(value = "name", defaultValue = "anonymous") String v1, String course, Integer[] purpose) {
+        System.out.println(v1);
+        System.out.println(course);
+        for (Integer p : purpose) {
+            System.out.println(p);
+        }
+        return "success";
+    }
+}
+```
 
+这里的purpose使用数组来接收参数
 
+---
 
+使用List接收请求参数
 
+务必注意, 这里必须在方法参数前使用@RequestParam注解, 这样springmvc才会知道请求中包含的复合数据转化为list形式进行存储
 
+```java
+@RequestParam List<Integer> purpose
+```
 
+```java
+@PostMapping("/apply")
+@ResponseBody
+public String apply(String name, String course,
+                    @RequestParam List<Integer> purpose) {
+    System.out.println(duck);
+    System.out.println(course);
+    for (Integer p : purpose) {
+        System.out.println(p);
+    }
 
+    return "success";
+}
+```
 
+如果不在List复合参数前添加注解, 报错
 
+![image-20211230155407084](img/springmvc/image-20211230155407084.png)
 
+同时可以看到, List实际的数据载体是ArrayList
 
+![image-20211230155726445](img/springmvc/image-20211230155726445.png)
 
+在开发中建议使用List的方式存储复合参数
 
+---
 
+更多时候, 此类结构化的数据会使用类的方式来接收, 那么在对象中的属性List是否还会生效?
 
+1. 新建entity, Form类
 
+```java
+@Getter
+@Setter
+public class Form {
+    private String name;
+    private String course;
+    private List<Integer> purpose;   
+}
+```
 
+2. Controller中
+
+```java
+@PostMapping("/apply")
+@ResponseBody
+public String apply(Form form) {
+    System.out.println(form.getName());
+    System.out.println(form.getCourse());
+
+    for (Integer p : form.getPurpose()) {
+        System.out.println(p);
+    }
+    return "success";
+}
+```
+
+调试可以看到, form中接收到了参数
+
+![image-20211230160336008](img/springmvc/image-20211230160336008.png)
+
+所以在使用实体类接收数据的时候, 可以使用List来接收复合数据(数组), 通过实体类和List的结合, 可以简化接收表单数据的工作量.
+
+---
+
+#### 使用Map对象接收请求参数及注意事项(map无法接收复合数据)
+
+在接收复合数据时, map有缺陷
+
+使用Map来接收所有参数, 需要添加@RequestParam注解
+
+```java
+@PostMapping("/apply")
+@ResponseBody
+public String apply(@RequestParam Map map) {
+    System.out.println(map);
+    return "success";
+}
+```
+
+![image-20211230160839284](img/springmvc/image-20211230160839284.png)
+
+前台选择的purpose是1,2,3,4. 可以看出map无法接收复合数据
+
+map在默认情况下只会把数组中的第一个数据进行返回, purpose = 1
+
+---
+
+如果表达不包含任何的复合数据(数组数据), 可以使用map来接收, 但是如果有复合数组, 不能用map
 
 
 
