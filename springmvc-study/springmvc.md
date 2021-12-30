@@ -934,6 +934,73 @@ map在默认情况下只会把数组中的第一个数据进行返回, purpose =
 
 如果表达不包含任何的复合数据(数组数据), 可以使用map来接收, 但是如果有复合数组, 不能用map
 
+### 关联对象赋值
+
+关联对象: 一个对象中引用了另一个对象, 需要对被引用对象赋值
+
+复杂内容表单:
+
+```
+用户名：<input name="username">
+密码：<input name="password">
+----------------------------------
+姓名：<input name="name">
+身份证号：<input name="idno">
+过期时间:<input name="expire">
+```
+
+结构如下:
+
+注册信息和身份信息. 两组数据 -> 两个类
+
+```Java
+public class User {
+    private String username;
+    private String username;
+    private IDCard idcard = new IDCard;
+}
+```
+
+```java
+public class IDCard {
+    private String name;
+    private String idno;
+    private Date expire;
+}
+```
+
+那么IDCard这个关联对象如何设置?
+
+Springmvc中关联对象赋值: 需要将关联对象的对象名放到表单name属性的前缀. springmvc就可以自动完成赋值操作
+
+需要在表单中, 将属性的name增加前缀`idcard.`
+
+```
+复杂内容表单
+用户名：<input name="username">
+密码：<input name="password">
+---------------------------------
+姓名：<input name="idcard.name">
+身份证：<input name="idcard.idno">
+过期时间：<input name="idcard.expire">
+```
+
+---
+
+调查问卷的例子中, 添加收货地址的表单
+
+```html
+<!-- 收货地址 -->
+<h3>收货人</h3>
+<input name="name" class="text" style="width: 150px">
+<h3>联系电话</h3>
+<input name="mobile" class="text" style="width: 150px">
+<h3>收货地址</h3>
+<input name="address" class="text" style="width: 150px">
+```
+
+
+
 
 
 
