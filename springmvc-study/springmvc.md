@@ -596,6 +596,113 @@ public String getMapping(@RequestParam("manager_name") String managerName) {
 
 #### 使用Java Bean接收请求参数
 
+之前的用户名和密码的表单, 假设有很多输入项, 不可能将所有的输入项都作为参数列举出来, 
+
+-> 创建对象保存输入项
+
+```java
+User user = new User();
+user.setParam1();
+user.setParam2();
+....
+```
+
+如果是这种写法, 很麻烦, spring mvc允许前台输入数据一次性保存为Java Bean. 
+
+一步到位, 数据到对象
+
+---
+
+1. 新增User类
+
+```java
+package com.imooc.springmvc.entity;
+import lombok.Getter;
+import lombok.Setter;
+@Getter
+@Setter
+public class User {
+    private String username;
+    private Long password;
+}
+```
+
+务必注意这里的属性名称必须和前台传入参数的名字完全一致
+
+```xml
+<body>
+    <form action="/um/p1" method="post">
+        <input name="username"/><br/>
+        <input name="password"/><br/>
+        <input type="submit" value="submit">
+    </form>
+</body>
+```
+
+2. Controller中
+
+```java
+@PostMapping("p1")
+@ResponseBody
+public String postMapping1(User user) {
+    System.out.println(user.getUsername() + ": " + user.getPassword());
+    return "postMapping1";
+}
+```
+
+使用Java Bean接收数据, Springmvc在运行时, 只要数据提交到p1这个地址上, spring mvc发现该方法的参数是一个实体类, 那么就会自动在实体类中寻找同名的请求参数, 自动完成数据注入.
+
+如果这里的函数签名修改为, 那么是哪一个username被赋值呢?
+
+```java
+@PostMapping("p1")
+@ResponseBody
+public String postMapping1(User user, String username) {
+    System.out.println(user.getUsername() + ": " + user.getPassword());
+    return "postMapping1";
+}
+```
+
+增加断点调试后可见, user中的username, username都被注入, 所以不管有多少个参数, 只要参数名称和请求参数同名, 就全部都会赋值
+
+---
+
+所以, 如果接收的参数较少, 可以直接使用参数方式来接收请求参数. 如果参数很多, 可以通过新建实体类, Java Bean注入的方式来进行参数接收.
+
+### 复合数据获取
+
+调查问卷: 
+
+<img src="img/springmvc/image-20211230144754262.png" alt="image-20211230144754262" style="zoom:67%;" />
+
+知识点:
+
+* 利用数组或者List接收请求中的复合数据
+
+* 利用@RequestParam为参数设置默认值
+
+* 使用Map对象接收请求参数及注意事项
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

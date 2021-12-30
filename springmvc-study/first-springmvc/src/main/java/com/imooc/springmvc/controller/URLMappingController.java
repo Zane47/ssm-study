@@ -1,5 +1,6 @@
 package com.imooc.springmvc.controller;
 
+import com.imooc.springmvc.entity.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,14 @@ public class URLMappingController {
 
         System.out.println(username + ":" + password);
         return username + ":" + password;
+    }
+
+    @PostMapping("p1")
+    @ResponseBody
+    public String postMapping1(User user, String username) {
+        // 不管有多少个参数, 只要参数名称和请求参数同名, 就全部都会赋值
+        System.out.println(user.getUsername() + ": " + user.getPassword());
+        return "postMapping1";
     }
 
 }
