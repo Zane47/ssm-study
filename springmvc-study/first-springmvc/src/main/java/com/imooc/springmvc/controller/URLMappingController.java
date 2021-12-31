@@ -4,6 +4,8 @@ import com.imooc.springmvc.entity.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+
 @Controller
 @RequestMapping("/um")
 public class URLMappingController {
@@ -41,7 +43,7 @@ public class URLMappingController {
 
     @PostMapping("p1")
     @ResponseBody
-    public String postMapping1(User user, String username) {
+    public String postMapping1(User user, String username, Date createtime) {
         // 不管有多少个参数, 只要参数名称和请求参数同名, 就全部都会赋值
         System.out.println(user.getUsername() + ": " + user.getPassword());
         return "postMapping1";
