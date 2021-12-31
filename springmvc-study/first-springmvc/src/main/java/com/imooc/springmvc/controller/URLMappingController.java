@@ -1,6 +1,7 @@
 package com.imooc.springmvc.controller;
 
 import com.imooc.springmvc.entity.User;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +21,9 @@ public class URLMappingController {
 
     @GetMapping("/g")
     @ResponseBody
-    public String getMapping(@RequestParam("manager_name") String managerName) {
+    public String getMapping(@RequestParam("manager_name") String managerName, Date createTime) {
         System.out.println("managerName: " + managerName);
+        System.out.println("createTime: " + createTime.toString());
         return "this is get method. " + managerName;
     }
 
@@ -43,9 +45,11 @@ public class URLMappingController {
 
     @PostMapping("p1")
     @ResponseBody
-    public String postMapping1(User user, String username, Date createtime) {
+    public String postMapping1(User user, String username,
+                               @DateTimeFormat(pattern = "yyyyMMdd") Date createtime) {
         // 不管有多少个参数, 只要参数名称和请求参数同名, 就全部都会赋值
         System.out.println(user.getUsername() + ": " + user.getPassword());
+        System.out.println(createtime.toString());
         return "postMapping1";
     }
 

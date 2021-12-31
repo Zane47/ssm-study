@@ -1054,49 +1054,216 @@ public String applyDelivery(Form form) {
 
 ### 接收日期数据
 
-各个地区的格式不同
+@DateTimeFormat: 根据指定格式将前台的String转成Date对象. 需要指定格式pattern
+
+1. html中接收日期
+
+```html
+<body>
+    <form action="/um/p1" method="post">
+        <input name="username"/><br/>
+        <input name="password"/><br/>
+        <input name="createtime"/><br/>
+        <input type="submit" value="submit">
+    </form>
+</body>
+```
+
+2. 接收createtime的参数
+
+```java
+@PostMapping("p1")
+@ResponseBody
+public String postMapping1(User user, String username, Date createtime) {}
+```
+
+3. 测试2015-01-01
+
+报错400, 2015-01-01无法有效转换成Date类型
+
+需要手动转换. 
+
+4. 添加@DateTimeFormat注解: @DateTimeFormat(pattern = "yyyy-MM-dd")
+
+需要指定格式
+
+```java
+@PostMapping("p1")
+@ResponseBody
+public String postMapping1(User user, String username,
+                           @DateTimeFormat(pattern = "yyyy-MM-dd") Date createtime) {
+    // 不管有多少个参数, 只要参数名称和请求参数同名, 就全部都会赋值
+    System.out.println(user.getUsername() + ": " + user.getPassword());
+    return "postMapping1";
+}
+```
+
+可以看到日期对象接收成功
+
+```
+Thu Jan 01 00:00:00 CST 2015
+```
+
+5. 实体对象中添加Date, 属性上添加注解
+
+实体类User中添加注解
+
+```java
+@Getter
+@Setter
+public class User {
+    private String username;
+    private Long password;
+    
+    @DateTimeFormat(pattern = "YYYY-MM-dd")
+    private Date createtime;
+}
+```
+
+---
+
+如果有很多地方需要日期类型的转换, 注解就不方便了
+
+-> 设置全局的默认时间格式, 按照指定的规则转换
+
+1. 新建自定义日期转换类, 实现convert接口, 接口有两个泛型代表要转换的类
+
+在方法内部实现类型转换
+
+```java
+package com.imooc.springmvc.convert;
+import org.springframework.core.convert.converter.Converter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+public class MyDateConvertor implements Converter<String, Date> {
+    @Override
+    public Date convert(String s) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            return sdf.parse(s);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
+```
+
+这时候MyDateConvertor只是一个Java类, 需要让Spring mvc知道他
+
+2. applicationContext中进行通知springmvc该转换类
+
+通知Spring MVC有哪些自定义的转换类 -> FormattingConversionServiceFactoryBean
+
+```xml
+<!-- 通知Spring MVC有哪些自定义的转换类 -->
+<bean id="conversionService"
+      class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+    <property name="converters">
+        <set>
+            <bean class="com.imooc.springmvc.convert.MyDateConvertor"/>
+        </set>
+    </property>
+</bean>
+```
+
+* 用来通知Spring MVC有哪些自定义的转换类
+* 一般默认id: conversionService
+* 其中的属性中声明自定义的转换类, set集合
+
+3. annotation-driven中添加 conversion-service
+
+```xml
+<!-- 启用Spring MVC的注解开发模式 -->
+<mvc:annotation-driven conversion-service="conversionService"/>
+```
+
+4. get方法测试
+
+直接新增参数, 不使用注解方式.`http://localhost:8080/um/g?manager_name=asd&createTime=2010-01-01`
+
+```java
+@GetMapping("/g")
+@ResponseBody
+public String getMapping(@RequestParam("manager_name") String managerName, Date createTime) {
+    System.out.println("managerName: " + managerName);
+    System.out.println("createTime: " + createTime.toString());
+    return "this is get method. " + managerName;
+}
+```
+
+---
+
+如果既配置了自定义转换器, 又书写了注解, 以什么为准?
+
+springmvc强制要求, 如果配置了自定义转换器, 那么就一定会使用自定义转换器, 忽略注解
+
+---
+
+如果有多重日期格式, 可以在MyDateConvertor中根据String输入的长度来if else判断来处理的pattern.
+
+## Spring mvc中文乱码问题
+
+### 问题由来
+
+Tomcat默认使用字符集ISO-8859-1,属于西欧字符集
+
+解决乱码的核心思路是将ISO-8859-1转换为UTF-8
+
+Controller中请求与响应都需要设置UTF-8字符集
+
+### 问题配置
+
+* Get请求乱码 -> server.xml增加URIEncoding属性
+
+* Post请求乱码 -> web.xml配置CharacterEncodingFilter
+
+* Response响应乱码-Spring配置StringHttpMessageConverter
+
+一般项目中全部都要设置
+
+### Get请求乱码
+
+C:\tomcat\apache-tomcat-8.5.40\conf\server.xml中增加URIEncoding属性:
+
+URIEncoding="UTF-8"
+
+```xml
+<Connector port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" 
+			   URIEncoding="UTF-8"/>
+```
+
+自动把URI的字符集改成utf-8
+
+注意在tomcat8.0之后, URIEncoding默认就是UTF-8. 8.0之前默认还是ISO-8859-1
+
+### post请求乱码
+
+web.xml中添加CharacterEncodingFilter
+
+```xml
+<filter>
+    <filter-name>characterFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+        <param-name>encoding</param-name>
+        <param-value>UTF-8</param-value>
+    </init-param>
+</filter>
+<filter-mapping>
+    <filter-name>characterFilter</filter-name>
+    <url-pattern>/</url-pattern>
+</filter-mapping>
+```
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### 响应中的乱码问题
 
 
 
