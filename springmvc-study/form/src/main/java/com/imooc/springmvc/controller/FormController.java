@@ -64,13 +64,18 @@ public class FormController {
     }
     */
 
-    @PostMapping("/apply")
+    /*@PostMapping("/apply")
     @ResponseBody
     public String apply(@RequestParam Map map) {
         System.out.println(map);
         return "success";
+    }*/
+
+    @PostMapping("/apply")
+    @ResponseBody
+    public String applyDelivery(Form form) {
+        System.out.println(form);
+        return "success";
     }
-
-
 
 }

@@ -987,7 +987,7 @@ Springmvc中关联对象赋值: 需要将关联对象的对象名放到表单nam
 
 ---
 
-调查问卷的例子中, 添加收货地址的表单
+调查问卷的例子中, 添加收货地址的表单, index.html
 
 ```html
 <!-- 收货地址 -->
@@ -999,17 +999,64 @@ Springmvc中关联对象赋值: 需要将关联对象的对象名放到表单nam
 <input name="address" class="text" style="width: 150px">
 ```
 
+1. 新增entity: Delivery
+
+```java
+@Setter
+@Getter
+public class Delivery {
+    private String name;
+    private String mobile;
+    private String address;
+}
+```
+
+2. 关联表单数据
+
+Form中添加对象, 注意必须要实例化对象才可以关联
+
+```java
+public class Form {
+    private String name;
+    private String course;
+    private List<Integer> purpose;
+
+    // 这里需要实例化才可以保证赋值成功
+    private Delivery delivery = new Delivery();
+}
+```
+
+在index中添加前缀, 注意前缀的名字务必和表单中对象名称相同
+
+```html
+<!-- 收货地址 -->
+<!-- 增加前缀, 这里前缀的名字就是Form表单中的对象名称 -->
+<h3>收货人</h3>
+<input name="delivery.name" class="text" style="width: 150px">
+<h3>联系电话</h3>
+<input name="delivery.mobile" class="text" style="width: 150px">
+<h3>收货地址</h3>
+<input name="delivery.address" class="text" style="width: 150px">
+```
+
+注意这里添加的前缀就是表单中关联对象的名称
+
+3. Controller查看
+
+```java
+@PostMapping("/apply")
+@ResponseBody
+public String applyDelivery(Form form) {
+    System.out.println(form.getDelivery().getname());
+    return "success";
+}
+```
 
 
 
 
 
-
-
-
-
-
-
+### 接收日期数据
 
 
 
