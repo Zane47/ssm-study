@@ -1288,6 +1288,333 @@ supportedMediaTypes复数, 是list集合
 
 调试后, 中文正确输出
 
+核心语句就是下面的, 和servlet中相同, 只是spring mvc以配置的形式暴露出来, 维护更方便
+
+```java
+response.setContentType("text/html;charset=utf-8")
+```
+
+## 响应输出
+
+响应中产生结果主要有两种方式：
+
+* @ResponseBody 产生响应文本, 返回字符串
+
+* ModelAndView 利用模板引擎(jsp, )渲染输出, 返回页面
+
+### @ResponseBody
+
+@ResponseBody直接产生响应体的数据, 过程不涉及任何视图。
+
+@ResponseBody可产生标准字符串/JSON/XML等格式数据。 生产环境中常用JSON给客户端
+
+@ResponseBody产生的字符串被StringHttpMessageConverter所影响。 -> 上节字符集
+
+---
+
+```java
+@PostMapping("p1")
+@ResponseBody
+public String postMapping1(User user, String username,
+                           @DateTimeFormat(pattern = "yyyyMMdd") Date createtime) {
+    // 不管有多少个参数, 只要参数名称和请求参数同名, 就全部都会赋值
+    System.out.println(user.getUsername() + ": " + user.getPassword());
+    System.out.println(createtime.toString());
+    
+    return "<h1>hello<h1>";
+}
+```
+
+会对html进行解释, 输出对应内容 -> 查看网页源代码, 也是`<h1>`
+
+但是实际开发一般不会返回这种html片段, 复杂的页面html很大. 一般由Controller中产生数据, 再结合jsp等模板引擎对页面进行动态展现.
+
+### ModelAndView
+
+* ModelAndView对象是指“模型(数据)与视图(界面)”对象。
+
+* 通过ModelAndView可将包含数据对象与模板引擎进行绑定。
+
+* Spring MVC中默认的视图View是JSP，也可以配置其他模板引擎。
+
+---
+
+1. Controller中
+
+文件名中的 / 说明要存储在webapp的根路径下
+
+```java
+@GetMapping("/view")
+public ModelAndView showView() {
+    // 文件名中的 / 说明要存储在webapp的根路径下
+    ModelAndView modelAndView = new ModelAndView("/view.jsp");
+    return modelAndView;
+}
+```
+
+2. view.jsp
+
+webapp下新建view.jsp
+
+```jsp
+<%--
+  Created by IntelliJ IDEA.
+  User:
+  Date: 2021/12/31
+  Time: 19:32
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+<h1>this is view page</h1>
+</body>
+</html>
+```
+
+3. 运行后输出
+
+---
+
+这里浏览器访问/view或者/view.jsp是一样的, 为什么要增加Contorller方法?
+
+因为在Controller中可以动态生成某些数据, 单纯的jsp页面是写死的, 无法把**数据和页面绑定**在一起
+
+ 一般后端返回页面的时候肯定需要传入参数，因此我们需要向View页面中注入参数
+
+1. 在Controller中根据参数动态生成数据
+
+```java
+@GetMapping("/view")
+public ModelAndView showView(Integer userId) {
+    // 文件名中的 / 说明要存储在webapp的根路径下
+    ModelAndView modelAndView = new ModelAndView("/view.jsp");
+    User user = new User();
+    if (userId == 1) {
+        user.setUsername("1");
+    } else if (userId == 2) {
+        user.setUsername("2");
+    }
+    // 在当前请求中增加对象, 别名u
+    modelAndView.addObject("u", user);
+    return modelAndView;
+}
+```
+
+2. 在jsp中提取数据
+
+注意别名要一致
+
+```jsp
+<%--
+  Created by IntelliJ IDEA.
+  User:
+  Date: 2021/12/31
+  Time: 19:32
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+<h1>this is view page</h1>
+<hr>
+<h1>username:${u.username}</h1>
+</body>
+</html>
+```
+
+3. 输出
+
+根据传入的参数不同, 输出不同的数据
+
+<img src="img/springmvc/image-20211231194703914.png" alt="image-20211231194703914" style="zoom:67%;" />
+
+```
+在view中返回map、list都是可行的，不仅只有对象：
+Map<String, String> map=new HashMap<String, String>();
+map.put("sex","男");
+mav.addObject("map",map);
+
+或者直接返回一个字符串也行：
+mav.addObject("msg", "我要返回值");
+```
+
+可以通过此例子看出mvc的设计核心, 视图和模型的解耦, 通过ModelAndView对象把数据产生的过程和界面展现的过程做了解耦. 例如: 前端开发jsp, 后端开发Controller, 前端只需要知道u中有一个属性username即可, 不需要了解u是哪个表, 哪个类. 后端不关心前端的变化. 前后端只需要规定好名称和数据存放的地方, 别名. 数据之间解耦. 中间对象是ModelAndView, 承上启下. 数据的产生和页面展现解耦
+
+### ModelAndView的核心用法
+
+ModelAndView用来做数据和试图绑定
+
+* mav.addObject()方法设置的属性默认存放在**当前请求**中. 用来设置页面要显示的数据是什么
+
+* 默认ModelAndView使用请求转发(底层使用forward)至页面
+
+* 页面重定向使用new ModelAndView("redirect:/index.jsp")
+
+#### 请求转发和重定向
+
+```java
+@GetMapping("/view")
+public ModelAndView showView(Integer userId) {
+    // 文件名中的 / 说明要存储在webapp的根路径下
+    ModelAndView modelAndView = new ModelAndView("/view.jsp");
+
+    User user = new User();
+    if (userId == 1) {
+        user.setUsername("1");
+    } else if (userId == 2) {
+        user.setUsername("2");
+    } else if (userId == 3) {
+        user.setUsername("3");
+    }
+
+    // 在当前请求中增加对象, 别名u
+    modelAndView.addObject("u", user);
+
+    return modelAndView;
+}
+```
+
+
+
+请求转发: 把当前给showView方法的请求, 原封不动地传递给view.jsp. 也即是说showView方法中的请求和view.jsp中使用的请求是同一个. mav.addObject()方法就是往当前请求中存放数据, 那么showView放入数据, jsp中提取数据
+
+在浏览器中输入`http://localhost:8080/view?userId=2`可以看到输出的结果:
+
+![image-20211231201817187](img/springmvc/image-20211231201817187.png)
+
+同时可以发现, url地址没有变化, 也就是说在Controller中的请求被转发到了jsp中, jsp和Controller共享一个request对象. 
+
+此时在代码中修改, 在`/view.jsp`前添加`redirect:`(页面重定向)
+
+```java
+// ModelAndView modelAndView = new ModelAndView("/view.jsp");
+ModelAndView modelAndView = new ModelAndView("redirect:/view.jsp");
+```
+
+页面重定向: 通知浏览器建立一个新的请求
+
+还是一样的url:`http://localhost:8080/view?userId=2`回车后可以发现url修改为: `http://localhost:8080/view.jsp`
+
+<img src="img/springmvc/image-20211231202103554.png" alt="image-20211231202103554" style="zoom:67%;" />
+
+页面重定向后, 地址变成了`http://localhost:8080/view.jsp`
+
+请求转发是Controller共享一个request请求对象
+
+页面重定向是Controller通知客户端浏览器重新建立一个新的请求来访问view.jsp这个地址. 额外创建了一个请求, view.jsp. 因为在mav.addObject()中数据默认都会存放到当前的请求中, 但是页面重定向跳转后, 包含数据的请求被清空了, 取而代之的是跳转至view.jsp的新请求, 新请求中并没有之前的数据.
+
+---
+
+#### 那么重定向什么时候使用?
+
+跳转的view和当前Controller处理关系不紧密的时候, 例如注册之后完了之后回到首页, 首页和注册功能关系不大, 所以注册完成后就可以在mav中使用redirect:
+
+---
+
+#### 页面地址的细节
+
+创建的时候也可以无需设置访问地址, 使用`modelAndView.setViewName()`来进行设置访问的页面, 更加灵活
+
+```java
+modelAndView.setViewName("/view.jsp");
+modelAndView.setViewName("view.jsp");
+```
+
+两者的区别:
+
+没有/就是相对路径, 相对于当前访问地址的路径, 如果类上添加@RequestMapping("/um"), 那么地址就是在webapp下新建um下的view.jsp文件. 指定的url前缀也要在webapp中有目录
+
+建议使用绝对路径
+
+```java
+ModelAndView modelAndView = new ModelAndView();
+modelAndView.setViewName("view.jsp");
+```
+
+jsp的文件路径:src/main/webapp/um/view.jsp 
+```jsp
+<%--
+  Created by IntelliJ IDEA.
+  User:
+  Date: 2021/12/31
+  Time: 19:32
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Title</title>
+</head>
+<body>
+<h1>this is view page(/um/view)</h1>
+<hr>
+<h1>username:${u.username}</h1>
+</body>
+</html>
+```
+
+可以发现访问到了:
+
+![image-20211231203135925](img/springmvc/image-20211231203135925.png)
+
+### String和ModelMap
+
+使用ModelMap对应模型数据, 向里面设置值, 给页面提供数据
+
+直接返回String.
+
+就是把ModelAndView拆分成两个对象, 分别存储 -> 实际使用很常见
+
+```java
+/**
+     * String 和 ModelMap
+     */
+public String showView1(Integer userId, ModelMap modelMap) {
+    String view = "/um/view.jsp";
+    User user = new User();
+    if (userId == 1) {
+        user.setUsername("1");
+    } else if (userId == 2) {
+        user.setUsername("2");
+    } else if (userId == 3) {
+        user.setUsername("3");
+    }
+    modelMap.addAttribute("u", user);
+    return view;
+}
+```
+
+ModelMap不是必须的, 在很多场景下不需要给指定试图添加数据
+
+---
+
+Controller方法返回string的情况
+
+1.方法被@ResponseBody描述，SpringMVC直接响应String字符串本身
+
+2.方法不存在@ResponseBody,则SpringMVC处理String指代的视图（页面）
+
+## SpringMVC整合Freemarker
+
+SpringMVC默认使用JSP作为模板引擎
+
+1. pom依赖: freemarker和spring上下文支持包
+
+```xml
+
+```
+
+
+
+
+
 
 
 
