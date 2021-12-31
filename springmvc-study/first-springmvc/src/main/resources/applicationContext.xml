@@ -22,7 +22,21 @@
     <context:component-scan base-package="com.imooc.springmvc"/>
 
     <!-- 启用Spring MVC的注解开发模式 -->
-    <mvc:annotation-driven conversion-service="conversionService"/>
+    <mvc:annotation-driven conversion-service="conversionService">
+        <!-- 消息转换器, 可以对响应的消息进行调整 -->
+        <mvc:message-converters>
+            <!-- 对http中的响应消息的文本进行转换 -->
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <!-- servlet中是response.setContentType("text/html;charset=utf-8")
+                            mvc底层以参数的形式暴露出来, 底层也是这个语句-->
+                        <value>text/html;charset=UTF-8</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
 
     <!-- 将图片/JS/CSS等静态资源排除在外，可提高执行效率 -->
     <mvc:default-servlet-handler/>

@@ -50,7 +50,7 @@ public class URLMappingController {
         // 不管有多少个参数, 只要参数名称和请求参数同名, 就全部都会赋值
         System.out.println(user.getUsername() + ": " + user.getPassword());
         System.out.println(createtime.toString());
-        return "postMapping1";
+        return "这是post响应";
     }
 
 }

@@ -1245,6 +1245,7 @@ URIEncoding="UTF-8"
 web.xml中添加CharacterEncodingFilter
 
 ```xml
+<!-- post请求中文乱码解决 -->
 <filter>
     <filter-name>characterFilter</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -1253,23 +1254,39 @@ web.xml中添加CharacterEncodingFilter
         <param-value>UTF-8</param-value>
     </init-param>
 </filter>
+<!-- 映射地址 -->
 <filter-mapping>
     <filter-name>characterFilter</filter-name>
-    <url-pattern>/</url-pattern>
+    <!--对所有URL进行拦截-->
+    <url-pattern>/*</url-pattern>
 </filter-mapping>
+
 ```
 
+### 响应response中的乱码问题
 
+```xml
+<!-- 启用Spring MVC的注解开发模式 -->
+<mvc:annotation-driven conversion-service="conversionService">
+    <!-- 消息转换器, 可以对响应的消息进行调整 -->
+    <mvc:message-converters>
+        <!-- 对http中的响应消息的文本进行转换 -->
+        <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+            <property name="supportedMediaTypes">
+                <list>
+                    <!-- servlet中是response.setContentType("text/html;charset=utf-8")
+                            mvc底层以参数的形式暴露出来, 底层也是这个语句-->
+                    <value>text/html;charset=UTF-8</value>
+                </list>
+            </property>
+        </bean>
+    </mvc:message-converters>
+</mvc:annotation-driven>
+```
 
+supportedMediaTypes复数, 是list集合
 
-
-### 响应中的乱码问题
-
-
-
-
-
-
+调试后, 中文正确输出
 
 
 
