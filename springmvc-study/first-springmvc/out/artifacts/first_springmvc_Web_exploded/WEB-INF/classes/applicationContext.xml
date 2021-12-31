@@ -51,4 +51,26 @@
         </property>
     </bean>
 
+    <!-- freemarker -->
+    <bean id="viewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+        <!--设置响应输出，并解决中文乱码-->
+        <property name="contentType" value="text/html;charset=utf-8"/>
+        <!--指定Freemarker模板文件扩展名, 后续就不需要写扩展名了, suffix: 后缀-->
+        <property name="suffix" value=".ftl"/>
+    </bean>
+
+
+    <!--配置Freemarker参数-->
+    <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+        <!--设置模板保存的目录-->
+        <property name="templateLoaderPath" value="/WEB-INF/ftl"/>
+        <!--其他模板引擎设置-->
+        <property name="freemarkerSettings">
+            <props>
+                <!--设置Freemarker脚本与数据渲染时使用的字符集-->
+                <prop key="defaultEncoding">UTF-8</prop>
+            </props>
+        </property>
+    </bean>
+
 </beans>

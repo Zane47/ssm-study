@@ -1608,24 +1608,87 @@ SpringMVC默认使用JSP作为模板引擎
 1. pom依赖: freemarker和spring上下文支持包
 
 ```xml
-
+<!-- freemarker引入依赖 spring上下文支持依赖-->
+<dependency>
+    <groupId>org.freemarker</groupId>
+    <artifactId>freemarker</artifactId>
+    <version>2.3.28</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context-support</artifactId>
+    <version>5.1.9.RELEASE</version>
+</dependency>
 ```
 
+2. 通知Spring使用freemarker模板引擎
 
+applicationContext中:
 
+```xml
+<!-- freemarker -->
+<bean id="ViewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+    <!--设置响应输出，并解决中文乱码-->
+    <property name="contentType" value="text/html;charset=utf-8"/>
+    <!--指定Freemarker模板文件扩展名, 后续就不需要写扩展名了, suffix: 后缀-->
+    <property name="suffix" value=".ftl"/>
+</bean>
+```
 
+3. 配置Freemarker参数
 
+freemarker本身相关的设置
 
+```xml
+<!--配置Freemarker参数-->
+<bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+    <!--设置模板保存的目录-->
+    <property name="templateLoaderPath" value="/WEB-INF/ftl"/>
+    <!--其他模板引擎设置-->
+    <property name="freemarkerSettings">
+        <props>
+            <!--设置Freemarker脚本与数据渲染时使用的字符集-->
+            <prop key="defaultEncoding">UTF-8</prop>
+        </props>
+    </property>
+</bean>
+```
 
+注意2, 3中的UTF-8作用的时机不一样
 
+tomcat无法直接解析freemarker引擎, 不像jsp, 为了保证模板的安全, 模板文件存放在无法从外侧直接访问的WEB_INF目录中, 通常又会新增一个ftl目录
 
+4. 代码
 
+```java
+@GetMapping("/test")
+public ModelAndView showTest() {
+    // 因为配置了扩展名，所以不需要写完整名
+    // /:代表根目录, 是配置了的/WEB-INF/ftl目录
+    ModelAndView modelAndView = new ModelAndView("/test");
 
+    User user = new User();
+    user.setUsername("wahaha");
+    modelAndView.addObject("u", user);
+    return modelAndView;
+}
+```
 
+```
+<h1>${u.username}</h1>
+```
 
+5. pom中新增了依赖, 但是需要手动把依赖的jar包发布
 
+![image-20211231205954430](img/springmvc/image-20211231205954430.png)
 
+6. 访问
 
+`http://localhost:8080/fm/test?userId=1`
+
+查看输出:
+
+![image-20211231210058796](img/springmvc/image-20211231210058796.png)
 
 # RESTful
 
