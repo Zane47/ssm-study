@@ -1738,7 +1738,7 @@ RESTful最典型的特征就是Server只返回数据, 数据以json或xml方式�
 
 这里的1是什么意思? RESTful的特殊写法, 把id号附在uri中, 向Server查询id为1的学生信息
 
-
+## 开发RESTful web应用
 
 
 
