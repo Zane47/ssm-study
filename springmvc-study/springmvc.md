@@ -1692,6 +1692,58 @@ public ModelAndView showTest() {
 
 # RESTful
 
+## 简介
+
+### 传统web应用的问题
+
+<img src="img/springmvc/image-20220101140307506.png" alt="image-20220101140307506" style="zoom:67%;" />
+
+MVC结构, jsp返回的是html, 所以client也必须是支持html的浏览器, 那么其他的不支持html的客户端(微信小程序, app等), 我们也希望他可以通过html和后端来进行通信. -> 全新的理念RESTful开发风格
+
+### REST和RESTful
+
+REST是一种理念, 不是具体的实现
+
+REST：表现层状态转移(Representational State Transfer), 资源在网络中以某种形式进行状态转移. 在web环境下以url的方式进行资源的处理. 例如: 获取图片, 网页资源以url的方式. 访问图片的网址, 返回的就是图片, 访问css的网址, 返回的就是css.
+
+RESTful: 基于REST理念的一套开发风格，是具体的开发规则。
+
+REST风格下, Client可以不是浏览器, 小程序, app等都可以. 
+
+---
+
+client和server的交互例子:
+
+<img src="img/springmvc/image-20220101141350370.png" alt="image-20220101141350370" style="zoom:67%;" />
+
+iphone中小程序向url(`http://xxx.com/list`)发送请求, 该请求发送到web的服务器上, 请求被处理后, 关键点在于Server返回的数据不再是html文本, 而是json或者xml格式数据.
+
+RESTful最典型的特征就是Server只返回数据, 数据以json或xml方式来体现, 同时返回的数据不包含任何与展示的相关的内容. 数据送回client之后, 由client来做数据的渲染展现, 例如pc是完整表格, app是滑动列表. 具体的展现是client的事情, server不关心前端的来源是app还是小程序等等, 只关注数据本身即可, 不关心数据以什么方式显现. -> **前后端分离**. 前后端工程师约定好开发的格式和url, 同时开发
+
+### RESTful开发规范
+
+* 使用URL作为用户交互入口
+* 明确的语义规范(GET|POST|PUT|DELETE). 在web环境下, 只支持get和post不支持put和delete. 所以只在浏览器写代码是没有后两种的, **get: 查询, post: 新增, put: 更新, delete: 删除**. 所以同一个url在向Server发送请求时, 不同的请求方式, 在Server的处理也不一样.  
+* 只返回数据(JSON|XML), 不包含任何展现. 优先json
+
+### RESTful命名要求
+
+| URI(url去掉域名)<br />统一资源标识符 | 说明                                     |  修改建议               |
+| ---------------------- | -------------------------------------------- | ------------------- |
+| GET /articles?au=lily  | 正确用法 |                                              |
+| GET /a/1               | URI必须具语义                       | GET /student/1                               |
+| POST /createArticle/1  | URI必须使用名词                     | POST /article/1                              |
+| GET /articles/author/1 | URI扁平化，不超两级. <br />id参数化, 同时这里查询的是<br />author的id. 就近 | GET /articles/author?id=1                    |
+| DELETE /articles/1     | URI名词区分单复数 | GET /articles?au=lily<br />DELETE /article/1 |
+
+这里的1是什么意思? RESTful的特殊写法, 把id号附在uri中, 向Server查询id为1的学生信息
+
+
+
+
+
+
+
 
 
 
