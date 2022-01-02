@@ -5,8 +5,9 @@
     <title>restful实验室</title>
     <script src="jquery-3.3.1.min.js"></script>
     <script>
-        $(function() {
-            $("#btnGet").click(function() {
+        // get
+        $(function () {
+            $("#btnGet").click(function () {
                 $.ajax({
                     url: "/restful/request",
                     type: "get",
@@ -19,6 +20,48 @@
 
         })
 
+        // post
+        $(function () {
+            $("#btnPost").click(function () {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "post",
+                    dataType: "json",
+                    success: function (json){
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+        })
+
+        // put
+        $(function () {
+            $("#btnPut").click(function () {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "put",
+                    dataType: "json",
+                    success: function (json){
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+        })
+
+        // delete
+        $(function () {
+            $("#btnDel").click(function () {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "delete",
+                    dataType: "json",
+                    success: function (json){
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+        })
+
 
     </script>
 
@@ -26,6 +69,9 @@
 </head>
 <body>
 <input type="button" id="btnGet" value="send get request">
+<input type="button" id="btnPost" value="send post request">
+<input type="button" id="btnPut" value="send put request">
+<input type="button" id="btnDel" value="send delete request">
 <h1 id="message"></h1>
 </body>
 </html>
