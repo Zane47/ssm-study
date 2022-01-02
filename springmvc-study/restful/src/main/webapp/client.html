@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>restful实验室</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script>
+        $(function() {
+            $("#btnGet").click(function() {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "get",
+                    dataType: "json",
+                    success: function (json) {
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+
+        })
+
+
+    </script>
+
+
+</head>
+<body>
+<input type="button" id="btnGet" value="send get request">
+<h1 id="message"></h1>
+</body>
+</html>

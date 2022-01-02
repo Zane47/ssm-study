@@ -19,6 +19,10 @@
                 <property name="supportedMediaTypes">
                     <list>
                         <value>text/html;charset=UTF-8</value>
+
+
+                        <!--通知浏览器以这种格式加载数据-->
+                        <value>application/json;charset=UTF-8</value>
                     </list>
                 </property>
             </bean>
