@@ -26,17 +26,9 @@ freemarker整合
 
 
 
-
-
-
-
-
-
-
-
 # RESTful风格的应用
 
-## RESTful
+## restful
 
 
 
@@ -50,7 +42,7 @@ freemarker整合
 
 
 
-## 
+
 
 
 
