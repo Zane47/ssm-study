@@ -26,6 +26,7 @@
                 $.ajax({
                     url: "/restful/request/100",
                     type: "post",
+                    data: "name=lily&age=23",
                     dataType: "json",
                     success: function (json) {
                         $("#message").text(json.message + ":" + json.id);
@@ -40,6 +41,7 @@
                 $.ajax({
                     url: "/restful/request",
                     type: "put",
+                    data: "name=lily&age=23",
                     dataType: "json",
                     success: function (json) {
                         $("#message").text(json.message);
