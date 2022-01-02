@@ -38,4 +38,24 @@ public class RestfulController {
         return "{\"message\":\"数据删除成功\"}";
     }
 
+
+    // ------------------------ jackson ------------------------
+    @GetMapping("/person")
+    public Person getPersonById(Integer id) {
+        Person person = new Person();
+        if (id == 1) {
+            person.setName("1");
+            person.setAge(11);
+        } else if (id == 2) {
+            person.setName("2");
+            person.setAge(22);
+        } else  {
+            person.setName("3");
+            person.setAge(33);
+        }
+        return person;
+    }
+
+
+
 }
