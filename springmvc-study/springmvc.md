@@ -1300,7 +1300,7 @@ response.setContentType("text/html;charset=utf-8")
 
 * @ResponseBody 产生响应文本, 返回字符串
 
-* ModelAndView 利用模板引擎(jsp, )渲染输出, 返回页面
+* ModelAndView 利用模板引擎(jsp, freemarker等)渲染输出, 返回页面. 页面的跳转
 
 ### @ResponseBody
 
@@ -1740,7 +1740,9 @@ RESTful最典型的特征就是Server只返回数据, 数据以json或xml方式�
 
 ## 开发RESTful web应用
 
-新建restful项目, 将工程设置为web开发, 并添加mvc基础配置
+### 基础RESTful
+
+新建restful项目, 将工程设置为web开发(配置facets), 并添加mvc基础配置
 
 web.xml
 
@@ -1818,11 +1820,578 @@ applicationContext.xml
 </beans>
 ```
 
+启动的时候发现报错:
+
+```
+02-Jan-2022 14:06:01.829 涓ラ噸 [RMI TCP Connection(3)-127.0.0.1] org.apache.catalina.core.StandardContext.filterStart Exception starting filter [characterFilter]
+ java.lang.ClassNotFoundException: org.springframework.web.filter.CharacterEncodingFilter
+```
+
+类找不到的错误, 一般是没有引入依赖, 原因是需要手动添加web的依赖. pom添加的依赖不会自动加入发布包中, 需要手动加入
+
+<img src="img/springmvc/image-20220102141016529.png" alt="image-20220102141016529" style="zoom:50%;" />
+
+---
+
+REST一种风格, 不是什么新技术
+
+* 要求URL中所有的都是名词
+
+* return返回的数据要求是json或者xml格式
+
+新增controller类
+
+```java
+package com.imooc.restful.controller;
+
+@Controller
+@RequestMapping("restful")
+public class RestfulController {
+    @GetMapping("/request")
+    @ResponseBody
+    public String doGetRequest() {
+        //使用\原义输出
+        return "{\"message\":\"返回查询结果\"}";
+    }
+}
+```
+
+然后浏览器访问`http://localhost:8080/restful/request`
+
+得到json(JSONVue美化后结果) -> 这就是一个RESTful风格的例子
+
+![image-20220102141259660](img/springmvc/image-20220102141259660.png)
+
+json格式字符串本身放在浏览器中咩有什么用, 本质上来说, 直接访问url返回的时候不会做直接做展示, 需要客户端的支持(app, 小程序等)提供与url交互的功能, -> Ajax, 在页面中异步地向url发送请求, 返回相应结果
+
+### Client与Server的RESTful交互
+
+#### 基础的前后端分离
+
+复制`jquery-3.3.1.min.js`到webapp目录与out目录下(`restful\out\artifacts\restful_Web_exploded`), 使用Ajax函数向controller发送http请求
+
+![image-20220102144633195](img/springmvc/image-20220102144633195.png)
+
+新增client.html, 发布异步请求
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>restful实验室</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script>
+        $(function() {
+            $("#btnGet").click(function() {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "get",
+                    dataType: "json",
+                    // 成功返回
+                    success: function (json) {
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+        })
+    </script>
+</head>
+<body>
+<input type="button" id="btnGet" value="send get request">
+<h1 id="message"></h1>
+</body>
+</html>
+```
+
+浏览器访问`http://localhost:8080/client.html`
+
+可以看到输出返回
+
+![image-20220102144603338](img/springmvc/image-20220102144603338.png)
+
+
+
+一堆问号, 查看网路请求, 响应请求头，发现采用不正确的字符集。
+
+![image-20220102144845835](img/springmvc/image-20220102144845835.png)
+
+可以看到contextType是:application/json的字符集不支持, 所以需要进行修改
+
+在applicationContext.xml中修改
+
+```xml
+<mvc:annotation-driven>
+        <mvc:message-converters>
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/html;charset=UTF-8</value>
+                        
+                        <!--通知浏览器以这种格式加载数据-->
+                        <value>application/json;charset=UTF-8</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+```
+
+再次测试可见中文正常显示
+
+![image-20220102145312630](img/springmvc/image-20220102145312630.png)
+
+使用Ajax函数, 模拟html5客户端向服务器发送请求的过程
+
+本质上, 小程序app等也都是向Server发送http请求. 只不过app和小程序有自己的函数来发送, 而不是Ajax. 对于Server的程序处理, 不关心是什么client, 都返回相同的数据, 数据的展现由client处理 
+
+-> 前后端分离最基础的实现
+
+#### 不同类型的请求
+
+RESTful针对不同类型的请求做不同的操作
+
+get: 查询, post: 新增, put: 更新, delete: 删除
+
+1. 增加不同类型的请求, url一样, 只是请求方式不一样
+
+```java
+package com.imooc.restful.controller;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+@Controller
+@RequestMapping("restful")
+public class RestfulController {
+    @GetMapping("/request")
+    @ResponseBody
+    public String doGetRequest() {
+
+        //使用\原义输出
+        return "{\"message\":\"返回查询结果\"}";
+    }
+
+    @PostMapping("/request")
+    @ResponseBody
+    public String doPostRequest() {
+        return "{\"message\":\"数据新建成功\"}";
+    }
+
+    @PutMapping("/request")
+    @ResponseBody
+    public String doPutRequest() {
+        return "{\"message\":\"数据更新成功\"}";
+    }
+
+    @DeleteMapping("/request")
+    @ResponseBody
+    public String doDeleteRequest() {
+        return "{\"message\":\"数据删除成功\"}";
+    }
+}
+```
+
+2. Ajax中发送请求
+
+Ajax中type参数来说明发送什么请求
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>restful实验室</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script>
+        // get
+        $(function () {
+            $("#btnGet").click(function () {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "get",
+                    dataType: "json",
+                    success: function (json) {
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+
+        })
+
+        // post
+        $(function () {
+            $("#btnPost").click(function () {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "post",
+                    dataType: "json",
+                    success: function (json){
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+        })
+
+        // put
+        $(function () {
+            $("#btnPut").click(function () {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "put",
+                    dataType: "json",
+                    success: function (json){
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+        })
+
+        // delete
+        $(function () {
+            $("#btnDel").click(function () {
+                $.ajax({
+                    url: "/restful/request",
+                    type: "delete",
+                    dataType: "json",
+                    success: function (json){
+                        $("#message").text(json.message);
+                    }
+                })
+            })
+        })
+    </script>
+</head>
+<body>
+<input type="button" id="btnGet" value="send get request">
+<input type="button" id="btnPost" value="send post request">
+<input type="button" id="btnPut" value="send put request">
+<input type="button" id="btnDel" value="send delete request">
+<h1 id="message"></h1>
+</body>
+</html>
+```
+
+请求类型不一样, 处理结果也不一样
+
+3. 测试
+
+浏览器访问`http://localhost:8080/client.html`, 点击不同的button发送不同类型请求
+
+![image-20220102152739375](img/springmvc/image-20220102152739375.png)
+
+---
+
+* 程序的问题
+
+1. 返回值是新建json字符串方式, 如果是大对象, 很麻烦 -> 要优化
+2. 每个方法都使用注解@ResponseBody, 说明返回字符串,  -> 可以不需要这么麻烦
+3. 例如`/request/1`的请求, 如何获取url中的数据
+
+以上的问题, 使用RESTful的简单开发技巧: @RestController和路径变量
+
+### @RestController
+
+每次书写方法后, 都需要添加注解@ResponseBody表示返回字符串输出到响应, 每个都要添加很麻烦
+
+-> jdk1.4后提供新的Controller注解: @RestController, 表示默认当前类的方法返回的都是REST形式的数据, 而不是页面的跳转
+
+```java
+package com.imooc.restful.controller;
+import org.springframework.web.bind.annotation.*;
+@RestController
+@RequestMapping("restful")
+public class RestfulController {
+    @GetMapping("/request")
+    // @ResponseBody
+    public String doGetRequest() {
+
+        //使用\原义输出
+        return "{\"message\":\"返回查询结果\"}";
+    }
+    @PostMapping("/request")
+    // @ResponseBody
+    public String doPostRequest() {
+        return "{\"message\":\"数据新建成功\"}";
+    }
+    @PutMapping("/request")
+    // @ResponseBody
+    public String doPutRequest() {
+        return "{\"message\":\"数据更新成功\"}";
+    }
+    @DeleteMapping("/request")
+    // @ResponseBody
+    public String doDeleteRequest() {
+        return "{\"message\":\"数据删除成功\"}";
+    }
+}
+```
+
+### 路径变量
+
+例如:`POST /article/1`, `POST /restful/request/100`
+
+放在uri中的变量就被称为路径变量.
+
+这里的1, 100, 不是参数而是URI的一部分, 要如何接收?
+
+-> springmvc提供的路径变量: 
+
+1. 方法前添加注解@PostMapping("/request/{rid}")
+2. 方法参数前添加注解@PathVariable("rid"). 只要能匹配上, rid的数值就会自动注入到requestId参数中
+
+```java
+@PostMapping("/request/{rid}")
+public String doPostRequest(@PathVariable("rid") Integer requestId) {
+    return "{\"message\":\"数据新建成功\", \"id\": "+requestId+"}";
+}
+```
+
+3. client.html中添加变量
+
+```html
+// post
+        $(function () {
+            $("#btnPost").click(function () {
+                $.ajax({
+                    url: "/restful/request/100",
+                    type: "post",
+                    dataType: "json",
+                    success: function (json) {
+                        $("#message").text(json.message + ":" + json.id);
+                    }
+                })
+            })
+        })
+```
+
+4. 输出
+
+![image-20220102154611315](img/springmvc/image-20220102154611315.png)
+
+### 简单请求和非简单请求
+
+* 简单请求是指标准结构的HTTP请求，对应GET/POST请求
+
+* 非简单请求是复杂要求的HTTP请求，指PUT/DELETE、扩展标准请求
+* 两者最大区别是非简单请求发送前需要发送预检请求
+
+数据结构基本一致, 内容不同
+
+预检请求: Server预先处理, 返回该请求能否被正常处理. 如果请求有问题, 就不会发送, 减轻网络传输压力
+
+---
+
+非简单请求的过程:
+
+![image-20220102155112206](img/springmvc/image-20220102155112206.png)
+
+类比: 送快递, 打电话知道你在家, 我再送.
+
+---
+
+查看不同请求的, mvc处理异同
+
+1. Ajax中的post和put请求分别添加data
+
+```
+// post
+$(function () {
+    $("#btnPost").click(function () {
+        $.ajax({
+            url: "/restful/request/100",
+            type: "post",
+            data: "name=lily&age=23",
+            dataType: "json",
+            success: function (json) {
+                $("#message").text(json.message + ":" + json.id);
+            }
+        })
+    })
+})
+// put
+$(function () {
+    $("#btnPut").click(function () {
+        $.ajax({
+            url: "/restful/request",
+            type: "put",
+            data: "name=lily&age=23",
+            dataType: "json",
+            success: function (json) {
+                $("#message").text(json.message);
+            }
+        })
+    })
+})
+```
+
+2. 新增Person entity
+
+```java
+package com.imooc.restful.entity;
+@Getter
+@Setter
+public class Person {
+    private String name;
+    private Integer age;
+}
+```
+
+3. 修改Controller中的post和put方法, -> put的方法有问题后续修改
+
+```java
+@PostMapping("/request/{rid}")
+// @ResponseBody
+public String doPostRequest(@PathVariable("rid") Integer requestId, Person person) {
+    System.out.println(person.getName() + ": " + person.getAge());
+    return "{\"message\":\"数据新建成功\", \"id\": " + requestId + "}";
+}
+
+@PutMapping("/request")
+// @ResponseBody
+public String doPutRequest(Person person) {
+    System.out.println(person.getName() + ": " + person.getAge());
+    return "{\"message\":\"数据更新成功\"}";
+}
+```
+
+在增加Person对象之后, mvc自动注入, put也按照post的方式直接书写
+
+4. 运行
+
+运行后发现, 
+
+* post的请求正常
+
+控制台输出: `lily: 23`, 
+
+![image-20220102160624343](img/springmvc/image-20220102160624343.png)
+
+* put请求有问题
+
+控制台输出: `null: null`, 注入失败.
+
+这就是简单请求和非简单请求的区别了, 
+
+5. 处理非简单请求
+
+一开始的springmvc只支持get和post, 后续需要增加非简单请求, 不能修改源代码. 所以做了一个折中的方式. 
+
+-> 对于put和delete非简单请求, springmvc提供额外的表单内容过滤器做处理.
+
+web.xml中
+
+```xml
+<!-- 支持非简单请求, put和delete -->
+<filter>
+    <filter-name>formContentFilter</filter-name>
+    <filter-class>org.springframework.web.filter.FormContentFilter</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>formContentFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+增加后, 就可以支持put和delete非简单请求了
+
+FormContentFilter是对springmvc能力的扩展
+
+## JSON序列化
+
+### 安全隐患
+
+jackson2.9版本前有严重安全隐患, 与MySQL同时使用的时候漏洞会被黑客利用.
+
+jackson必须使用2.9版本之后
+
+---
+
+### 引入步骤
+
+1. 添加jackson依赖, 
+   jackson-core, jackson-databind(jackson与目标对象交互的根源所在), jackson-annotations
+
+```xml
+<!-- jackson依赖 -->
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-core</artifactId>
+    <version>2.9.9</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.9.9</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-annotations</artifactId>
+    <version>2.9.9</version>
+</dependency>
+```
+
+spring非常智能，只要检查有jackson-core和jackson-databind这两个依赖包, 就会自动启用jackson为我们提供json序列化服务。
+
+注意新增的依赖需要添加到web中
+
+![image-20220102163507707](img/springmvc/image-20220102163507707.png)
+
+2. 书写java测试
+
+```java
+@GetMapping("/person")
+public Person getPersonById(Integer id) {
+    Person person = new Person();
+    if (id == 1) {
+        person.setName("1");
+        person.setAge(11);
+    } else if (id == 2) {
+        person.setName("2");
+        person.setAge(22);
+    } else  {
+        person.setName("3");
+        person.setAge(33);
+    }
+    return person;
+}
+```
+
+可以看到这里, 类上有注解@RestController, 理应返回json字符串, 但是这里直接返回person
+
+**如果我们返回一个实体对象，并且配置了@RestController或者@ResponseBody，那么jackson就会自动提供序列化服务。**
+
+3. 运行
+
+浏览器访问:`http://localhost:8080/restful/person?id=1`
+
+可以看到输出为:
+
+![image-20220102163700386](img/springmvc/image-20220102163700386.png)
+
+
+
+### 返回多个对象
 
 
 
 
 
+
+
+
+
+
+
+
+
+## 浏览器的同源策略
+
+
+
+
+
+
+
+## SpringMVC解决跨域
 
 
 
