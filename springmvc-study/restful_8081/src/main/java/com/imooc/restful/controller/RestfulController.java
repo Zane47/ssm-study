@@ -9,8 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("restful")
-//@CrossOrigin(origins = {"http://localhost:8082", "http://www.imooc.com"})
-//@CrossOrigin(origins = "*", maxAge = 3600)
 public class RestfulController {
 
     @GetMapping("/request")

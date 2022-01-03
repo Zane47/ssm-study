@@ -32,16 +32,7 @@
     <mvc:default-servlet-handler/>
 
 
-    <mvc:cors>
-        <!-- path: 当前应用的url地址, 哪一个路径允许跨域访问-->
-        <!-- allowed-origins: 哪些域名允许进行跨域访问 -->
-        <!-- 预检请求的缓存时间 -->
 
-        <mvc:mapping
-                path="/restful/**"
-                allowed-origins="http://localhost:8081, www.imooc.com"
-                max-age="3600"/>
-    </mvc:cors>
 
 
 

@@ -2618,47 +2618,156 @@ SpringMVC中两种方法解决跨域:
 
 ---
 
-前置设置: 复制另外一个项目, 8081
+使用8080端口和8081端口两个不同的项目来做跨域请求, 做演示
 
+前置设置: 复制另外一个项目, restful_8081, 并做修改
 
+1. 配置web
 
+与之前一样:
 
+* 添加web
 
+* 配置Web Module Deployment Descriptor
 
+* 配置Web Resource Directory
 
+2. 修改tomcat中配置
 
+<img src="img/springmvc/image-20220103153340286.png" alt="image-20220103153340286" style="zoom:50%;" />
 
+* 端口修改
+* deployment中配置对应的facets, 然后修改Application context为`/`
+* 添加依赖
 
+<img src="img/springmvc/image-20220103153814568.png" alt="image-20220103153814568" style="zoom:50%;" />
 
+3. client.html中修改persons中的Ajax跨域请求
 
+```
+// persons info
+$(function () {
+    $("#btnPersons").click(function () {
+        $.ajax({
+            url: "http://localhost:8081/restful/persons",
+            type: "get",
+            dataType: "json",
+            success: function (json) {
+                console.info(json);
+                for (var i = 0; i < json.length; i++) {
+                    var p = json[i];
+                    $("#divPersons").append("<h2>" + p.name + "-" + p.age + "-" + p.birthday + "</h2>");
+                }
+            }
+        })
+    })
+})
+```
+
+此时点击按钮可以看到错误:
+
+![image-20220103153847225](img/springmvc/image-20220103153847225.png)
+
+![image-20220103153911907](img/springmvc/image-20220103153911907.png)
+
+8081端口向8080端口发送跨域请求
+
+```
+Access to XMLHttpRequest at 'http://localhost:8080/restful/persons' from origin 'http://localhost:8081' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+解决: 在controller上声明跨域的注解即可
 
 #### @CrossOrigin
 
+1. 8080工程中Controller类中添加注解@CrossOrigin
+
+`@CrossOrigin(origins = {"http://localhost:8081"})`
+
+```java
+@RestController
+@RequestMapping("restful")
+@CrossOrigin(origins = {"http://localhost:8081"})
+public class RestfulController {}
+```
+
+2. 重启
+
+重新访问, 可以看到结果显示
+
+从8081访问8080
+
+![image-20220103154545647](img/springmvc/image-20220103154545647.png)
+
+---
+
+为什么添加注解就可以了
+
+* 查看RequestHeader, 如果是跨域访问, 就会有`Sec-Fetch-Mode: cors`, 数据获取的模式CORS, 代表跨域访问, 说明当前的请求需要跨域访问
+
+<img src="img/springmvc/image-20220103154729830.png" alt="image-20220103154729830" style="zoom:50%;" />
+
+* 查看ResponseHeader, 因为添加了响应的注解, 通过Vary响应头设置跨域访问的权限, 其实添加了注解后, 本质就是添加了该信息. 
+  Access-Control-Request-Method
+  Access-Control-Request-Headers
+  当这些响应头送达到客户端浏览器时, 说明远程url允许访问资源, 浏览器正常显示结果. 如果没有这些响应头, 即使后来network中得到了信息, 浏览器也不会显示结果, 不会做解析.
 
 
 
+<img src="img/springmvc/image-20220103154913733.png" alt="image-20220103154913733" style="zoom:50%;" />
 
+---
 
+多个域名需要跨域授权:
 
+* 在注解中添加即可
 
+```java
+@CrossOrigin(origins = {"http://localhost:8081", "http://www.imooc.com"})
+```
 
+* 偷懒的方法, 不推荐使用
 
+```java
+@CrossOrigin(origins = "*")
+```
 
+任何人都可以发送请求
 
+---
 
-#### `<mvc:cors>`
+CrossOrigin中maxAge参数: 设置预检请求的缓存时间3600s 
 
+对于非简单请求来说
 
+<img src="img/springmvc/image-20220103161137589.png" alt="image-20220103161137589" style="zoom:50%;" />
 
+可以将预检请求的结果进行缓存, 在设置时间内同样的请求过来就不需要再做预检处理, 直接发送实际请求. 降低Server压力.
 
+注意maxAge不是缓存请求的内容, 而是对于预检请求的处理结果进行缓存.
 
+#### `<mvc:cors>`: CORS全局设置
 
+applicationContext中配置
 
+```xml
+<mvc:cors>
+    <!-- path: 当前应用的url地址, 哪一个路径允许跨域访问-->
+    <!-- allowed-origins: 哪些域名允许进行跨域访问 -->
+    <!-- 预检请求的缓存时间 -->
 
+    <mvc:mapping
+                 path="/restful/**"
+                 allowed-origins="http://localhost:8081, www.imooc.com"
+                 max-age="3600"/>
+</mvc:cors>
+```
 
+如果既配置了全局的有配置了注解的, 以注解为准
 
+---
 
-
+注意, CORS跨域资源访问只是在浏览器中的安全策略, 如果是app或者小程序等, 上面的安全策略都不生效.
 
 
 
