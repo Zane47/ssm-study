@@ -2425,9 +2425,13 @@ Ajax中交互
 
 ![image-20220103140418524](img/springmvc/image-20220103140418524.png)
 
-### jackson的坑: 时间处理
+### jackson时间处理
 
-jackson中时间处理并不理想
+jackson中时间处理并不理想, 需要.添加注解, 指定pattern和时区.
+
+```
+@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+```
 
 1. 添加日期属性:
 
@@ -2512,13 +2516,115 @@ private Date birthday;
 
 输出时间正常
 
+## 浏览器的跨域访问
+
+在RESTful中必须要考虑的问题, 跨域访问的根源来自于浏览器的同源策略
+
+### 浏览器的同源策略
+
+* 阻止从一个域加载的脚本去获取另一个域上的资源。
+* 只要协议、域名、端口有任何不同，都被当做是不同的域。
+* 浏览器Console看到Access-Control-Allow-Origin就代表跨域了。
+
+两个网站A和B, 有不同的域名在不同的服务器上, 如果A的某个页面向B的某个url发送Ajax请求, 就会因为同源策略被阻止.
+
+原因: 浏览器为了保证网站的安全. 如果没有同源策略的保护, 任何一个网站都可以向其他网站发送请求, 那么黑客就可以在自己网站的js中模拟10w个人发起Ajax请求, 另外的网站就会因为请求过多瘫痪. -> 同源策略对资源进行保护. 网站的页面或者请求, 只能获取同网站(也就是同域名)下的资源, 不能跨域名访问其他的资源
+
+---
+
+演示:
+
+1. 模拟跨域
+
+client.html和jQuery两个客户端资源复制到桌面
+
+btnPersons中, 修改Ajax中请求的地址:
+
+```
+$(function () {
+            $("#btnPersons").click(function () {
+                $.ajax({
+                    url: "http://localhost:8080/restful/persons",
+                    ...
+                        }
+                    }
+                })
+            })
+        })
+```
+
+2. chrome打开
+
+此时浏览器地址栏的url: `file:///C:/Users/Admin/Desktop/client.html`, 并不是通过localhost访问的, 而是通过系统本地直接打开, 那么就和原始的localhost机器形成了跨域访问.
+
+当点击btnPersons之后, 可以看到并没有返回.
+
+F12查看
+
+![image-20220103150718475](img/springmvc/image-20220103150718475.png)
+
+```
+Access to XMLHttpRequest at 'http://localhost:8080/restful/persons' from origin 'null' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+发现当前访问的地址和浏览器中的域名不同, 错误, 浏览器只认识localhost域名下的某个页面发出的请求. 此时不符合同源策略
+
+在RESTful请求中, 有很大程度需要跨域名访问, 例如: 气象局的天气数据, 购买了服务的门户网站通过浏览器访问的时候, 不会在同一个域名下, 需要做额外的设置. 否则即使数据可以被访问, client门户这边也无法做处理. 
+
+-> 解决方法: Access-Control-Allow-Origin中设置跨域访问的范围, 可以决定某些域名访问服务 
+
+-> Spring mvc中的跨域访问
+
+---
+
+同源策略示例:
+
+| 源URL              | 目标URL                      | 直接访问？                           |
+| ------------------ | ---------------------------- | ------------------------------------ |
+| `http://imooc.com` | `https://xxx.com:8080/test`  | 不能. 域名, 端口, 协议都不同         |
+| `http://imooc.com` | `https://imooc.com`          | 不能. 协议不同                       |
+| `http://imooc.com` | `http://abc.imooc.com`       | 不能. 域名不同                       |
+| `http://imooc.com` | `http://imooc.com:8080`      | 不能. 端口不同, 默认是80, 目标是8080 |
+| `http://localhost` | `http://127.0.0.1`           | 不能. 特例, 虽然系统侧面都是本机     |
+| `http://imooc.com` | `http://imooc.com/user/test` | 能. 后面uri有几个层级不影响          |
+
+---
+
+* HTML中允许跨域的标签：
+
+`<img>` : 显式远程图片
+
+`<script>` : 加载远程JS, 加载指定url的js脚本
+
+`<link>` : 加载远程CSS
+
+### SpringMVC解决跨域
+
+#### CORS
+
+CORS(Cross-origin resource sharing, 跨域资源访问): 
+
+* CORS是一种机制，使用额外的HTTP头通知浏览器访问其他域。
+
+* URL响应头中包含Access-Control-*指明请求允许跨域。
+
+---
+
+SpringMVC中两种方法解决跨域: 
+
+* @CrossOrigin - Controller跨域注解, 当前Controller映射的url可以被跨域访问. 局部处理, 当前controller生效
+
+* `<mvc:cors>` : Spring MVC全局跨域配置
+
+---
+
+#### @CrossOrigin
 
 
 
 
 
 
-## 浏览器的同源策略
 
 
 
@@ -2526,17 +2632,7 @@ private Date birthday;
 
 
 
-## SpringMVC解决跨域
-
-
-
-
-
-
-
-
-
-
+#### `<mvc:cors>`
 
 
 
