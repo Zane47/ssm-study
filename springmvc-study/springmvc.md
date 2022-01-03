@@ -2371,11 +2371,146 @@ public Person getPersonById(Integer id) {
 
 ### 返回多个对象
 
+返回多条数据, list集合
 
+```java
+@GetMapping("/persons")
+public List<Person> getPersons() {
+    List<Person> personList = new ArrayList<>();
+    personList.add(new Person());
+    personList.get(0).setName("zero");
+    personList.get(0).setAge(10);
+    personList.add(new Person());
+    personList.get(1).setName("one");
+    personList.get(1).setAge(11);
+    personList.add(new Person());
+    personList.get(2).setName("two");
+    personList.get(2).setAge(12);
 
+    return personList;
+}
+```
 
+运行后返回数据:
 
+![image-20220103135143139](img/springmvc/image-20220103135143139.png)
 
+---
+
+如何在Client使用提取该数据:
+
+Ajax中交互
+
+```
+// persons info
+        $(function () {
+            $("#btnPersons").click(function () {
+                $.ajax({
+                    url: "/restful/persons",
+                    type: "get",
+                    dataType: "json",
+                    success: function (json){
+                        console.info(json);
+                    }
+                })
+            })
+        })
+        
+        
+        
+        <input type="button" id="btnPersons" value="get persons info">
+```
+
+浏览器中输出:
+
+![image-20220103140418524](img/springmvc/image-20220103140418524.png)
+
+### jackson的坑: 时间处理
+
+jackson中时间处理并不理想
+
+1. 添加日期属性:
+
+```java
+@Getter
+@Setter
+public class Person {
+    private String name;
+    private Integer age;
+    private Date birthday;
+}
+```
+
+2. 响应中添加日期属性
+
+```java
+// 多条数据json
+@GetMapping("/persons")
+public List<Person> getPersons() {
+    List<Person> personList = new ArrayList<>();
+    personList.add(new Person());
+    personList.get(0).setName("zero");
+    personList.get(0).setAge(10);
+    personList.get(0).setBirthday(new Date());
+    personList.add(new Person());
+    personList.get(1).setName("one");
+    personList.get(1).setAge(11);
+    personList.get(1).setBirthday(new Date());
+    personList.add(new Person());
+    personList.get(2).setName("two");
+    personList.get(2).setAge(12);
+    personList.get(2).setBirthday(new Date());
+
+    return personList;
+}
+```
+
+3. Ajax中添加前台显示
+
+```
+$("#divPersons").append("<h2>" + p.name + "-" + p.age + "-" + p.birthday + "</h2>");
+```
+
+4. 查看前台对日期的显示
+
+![image-20220103141252933](img/springmvc/image-20220103141252933.png)
+
+如果不做处理，就是直接返回事件戳的形式。从1970年到现在为止的毫秒数
+
+所以要做处理, 添加注解@JsonFormat
+
+5. 添加@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
+```java
+package com.imooc.restful.entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Getter;
+import lombok.Setter;
+import java.util.Date;
+
+@Getter
+@Setter
+public class Person {
+    private String name;
+    private Integer age;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date birthday;
+}
+```
+
+<img src="img/springmvc/image-20220103141847396.png" alt="image-20220103141847396" style="zoom:67%;" />
+
+还有需要注意的是jackson默认使用格林时间，需要指定时区：
+
+```java
+@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+private Date birthday;
+```
+
+![image-20220103142018288](img/springmvc/image-20220103142018288.png)
+
+输出时间正常
 
 
 

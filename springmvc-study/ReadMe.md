@@ -30,9 +30,15 @@ freemarker整合
 
 ## restful
 
+restful 101 client和Server, 简单的前后端分离
 
+@RestController
 
+路径变量
 
+简单请求和非简单请求 -> 配置项
+
+JSON序列化
 
 
 

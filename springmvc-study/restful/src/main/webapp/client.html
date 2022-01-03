@@ -64,6 +64,23 @@
             })
         })
 
+        // persons info
+        $(function () {
+            $("#btnPersons").click(function () {
+                $.ajax({
+                    url: "/restful/persons",
+                    type: "get",
+                    dataType: "json",
+                    success: function (json) {
+                        console.info(json);
+                        for (var i = 0; i < json.length; i++) {
+                            var p = json[i];
+                            $("#divPersons").append("<h2>" + p.name + "-" + p.age + "-" + p.birthday + "</h2>");
+                        }
+                    }
+                })
+            })
+        })
 
     </script>
 
@@ -75,5 +92,8 @@
 <input type="button" id="btnPut" value="send put request">
 <input type="button" id="btnDel" value="send delete request">
 <h1 id="message"></h1>
+<hr>
+<input type="button" id="btnPersons" value="get persons info">
+<div id="divPersons"></div>
 </body>
 </html>

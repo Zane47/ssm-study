@@ -1,8 +1,11 @@
 package com.imooc.restful.controller;
 
 import com.imooc.restful.entity.Person;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("restful")
@@ -39,7 +42,7 @@ public class RestfulController {
     }
 
 
-    // ------------------------ jackson ------------------------
+    // ------------------------ json序列化: jackson ------------------------
     @GetMapping("/person")
     public Person getPersonById(Integer id) {
         Person person = new Person();
@@ -54,6 +57,26 @@ public class RestfulController {
             person.setAge(33);
         }
         return person;
+    }
+
+    // 多条数据json
+    @GetMapping("/persons")
+    public List<Person> getPersons() {
+        List<Person> personList = new ArrayList<>();
+        personList.add(new Person());
+        personList.get(0).setName("zero");
+        personList.get(0).setAge(10);
+        personList.get(0).setBirthday(new Date());
+        personList.add(new Person());
+        personList.get(1).setName("one");
+        personList.get(1).setAge(11);
+        personList.get(1).setBirthday(new Date());
+        personList.add(new Person());
+        personList.get(2).setName("two");
+        personList.get(2).setAge(12);
+        personList.get(2).setBirthday(new Date());
+
+        return personList;
     }
 
 
