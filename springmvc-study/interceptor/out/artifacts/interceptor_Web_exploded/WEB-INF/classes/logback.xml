@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%thread] %d %level %logger{10} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!--RollingFileAppender追加器用于生成按天滚动的日志文件-->
+    <appender name="accessHistoryLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--rollingPolicy滚动策略，TimeBasedRollingPolicy按照时间进行滚动-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--配置日志存储路径-->
+            <fileNamePattern>E:\Github\ssm-study\springmvc-study\interceptor\log\history.%d.log</fileNamePattern>
+        </rollingPolicy>
+        <!--定义日志输出的格式-->
+        <encoder>
+            <pattern>[%thread] %d %level %logger{10} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!--日志的最低输出级别为debug，输出地址为控制台
+    AccessHistoryInterceptor这个类所产生的日志都会使用下面标签所产生的规则
+    additivity(叠加)是否向控制台输出，false在只会向指定规则(rollingFileAppender)下输出-->
+    <logger name="com.imooc.restful.interceptor.AccessHistoryInterceptor"
+            level="info" additivity="false">
+        <appender-ref ref="accessHistoryLog"/>
+    </logger>
+
+    <root level="debug">
+        <appender-ref ref="console"/>
+    </root>
+
+</configuration>

@@ -3145,6 +3145,157 @@ preHandle: http://localhost:8080/client.html-准备执行
 
 ## 用户流量拦截器
 
+使用场景之一: 用户浏览拦截器, 访问的时间, 网址, 浏览器, 系统, 手机, ip...
+
+拦截器采集用户基础数据
+
+logback日志组件进行日志存储
+
+---
+
+1. pom引入依赖, tomcat发布添加依赖
+
+```xml
+<!-- 日志 -->
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>1.2.3</version>
+</dependency>
+```
+
+<img src="img/springmvc/image-20220104221738301.png" alt="image-20220104221738301" style="zoom:67%;" />
+
+2. 添加日志logback配置文件logback.xml
+
+日志打印在控制台中
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%thread] %d %level %logger{10} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="debug">
+        <appender-ref ref="console"/>
+    </root>
+</configuration>
+```
+
+3. 日志保存配置, logback.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%thread] %d %level %logger{10} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!--RollingFileAppender追加器用于生成按天滚动的日志文件-->
+    <appender name="accessHistoryLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--rollingPolicy滚动策略，TimeBasedRollingPolicy按照时间进行滚动-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--配置日志存储路径-->
+            <fileNamePattern>E:\Github\ssm-study\springmvc-study\interceptor\log\history.%d.log</fileNamePattern>
+
+        </rollingPolicy>
+        <!--定义日志输出的格式-->
+        <encoder>
+            <pattern>[%thread] %d %level %logger{10} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!--日志的最低输出级别为debug，输出地址为控制台
+    AccessHistoryInterceptor这个类所产生的日志都会使用下面标签所产生的规则
+    additivity(叠加)是否向控制台输出，false在只会向指定规则(rollingFileAppender)下输出-->
+    <logger name="com.imooc.restful.interceptor.AccessHistoryInterceptor"
+            level="info" additivity="false">
+        <appender-ref ref="accessHistoryLog"/>
+    </logger>
+
+    <root level="debug">
+        <appender-ref ref="console"/>
+    </root>
+</configuration>
+```
+
+4. 编写拦截器类AccessHistoryInterceptor
+
+```java
+package com.imooc.restful.interceptor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class AccessHistoryInterceptor implements HandlerInterceptor {
+
+    // 创建一个logger日志对象
+    private final Logger logger = LoggerFactory.getLogger(AccessHistoryInterceptor.class);
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        StringBuilder log = new StringBuilder();
+        log.append(request.getRemoteAddr());
+        log.append("|");
+        log.append(request.getRequestURL());
+        log.append("|");
+        // 用户的客户端环境保存在user-agent请求头中
+        log.append(request.getHeader("user-agent"));
+
+        logger.info(log.toString());
+        return true;
+        // return HandlerInterceptor.super.preHandle(request, response, handler);
+    }
+}
+```
+
+5. 调整配置文件applicationContext
+
+```xml
+<mvc:interceptors>
+    <mvc:interceptor>
+        <!-- 对哪些URL进行拦截 -->
+        <!-- /**: 所有请求 -->
+        <mvc:mapping path="/**"/>
+
+        <!-- 要排除的地址有哪些 -->
+        <mvc:exclude-mapping path="/resources/**"/>
+
+
+        <!-- 拦截之后使用哪个class进行处理 -->
+        <bean class="com.imooc.restful.interceptor.AccessHistoryInterceptor"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+6. 运行后查看日志输出
+
+![image-20220104224023364](img/springmvc/image-20220104224023364.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
