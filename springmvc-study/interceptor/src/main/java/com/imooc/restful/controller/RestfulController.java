@@ -77,7 +77,7 @@ public class RestfulController {
         personList.get(2).setName("two");
         personList.get(2).setAge(12);
         personList.get(2).setBirthday(new Date());
-
+        System.out.println("RestfulController getPersons");
         return personList;
     }
 

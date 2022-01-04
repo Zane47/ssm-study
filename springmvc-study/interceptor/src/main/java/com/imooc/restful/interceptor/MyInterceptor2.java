@@ -19,26 +19,24 @@ import javax.servlet.http.HttpServletResponse;
  * 比如在jackson自动实现序列化之后.
  * 例如: 返回modelandview, 数据和模板引擎混合, 产生html片段, afterCompletion就会执行.
  */
-public class MyInterceptor implements HandlerInterceptor {
+public class MyInterceptor2 implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("preHandle: " + request.getRequestURL() + "-准备执行");
+        System.out.println("preHandle2: " + request.getRequestURL() + "-准备执行2");
         return true;
-        //response.getWriter().print("[]");
-        // return false;
         // return HandlerInterceptor.super.preHandle(request, response, handler);
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        System.out.println("postHandler: " + request.getRequestURI() + "-处理成功");
+        System.out.println("postHandler2: " + request.getRequestURI() + "-处理成功2");
 
         // HandlerInterceptor.super.postHandle(request, response, handler, modelAndView);
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        System.out.println("afterCompletion: " + request.getRequestURI() + "-响应内容已产生");
+        System.out.println("afterCompletion2: " + request.getRequestURI() + "-响应内容已产生2");
         // HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
     }
 }

@@ -2771,7 +2771,7 @@ applicationContext中配置
 
 # SpringMVC拦截器
 
--> 与过滤器filter有相似
+-> 与过滤器filter有相似, 都是对请求的拦截. 但是底层实现逻辑不一样
 
 ## Interceptor拦截器
 
@@ -2785,13 +2785,13 @@ applicationContext中配置
 
 * Interceptor底层就是基于SpringAOP面向切面编程实现。与环绕通知很相似
 
-## 拦截器开发流程:
+## 拦截器开发流程
 
-* Maven依赖servlet-api, 底层依赖j2e的servlet
+* Maven依赖servlet-api, 底层依赖j2e的servlet (scope是provided)
 
 * 实现HandlerInterceptor接口
 
-* applicationContext.xml拦截配置
+* applicationContext.xml拦截器配置
 
 ---
 
@@ -2878,7 +2878,7 @@ public class MyInterceptor implements HandlerInterceptor {
 <mvc:interceptors>
     <mvc:interceptor>
         <!-- 对哪些URL进行拦截 -->
-        <!-- /**: 所有请求 -->
+        <!-- /**: 对所有请求进行拦截, 被拦截的请求会送到MyInterceptor -->
         <mvc:mapping path="/**"/>
         <!-- 拦截之后使用哪个class进行处理 -->
         <bean class="com.imooc.restful.interceptor.MyInterceptor"/>
@@ -2886,23 +2886,262 @@ public class MyInterceptor implements HandlerInterceptor {
 </mvc:interceptors>
 ```
 
+ /**: 对所有请求进行拦截.  被拦截的请求会送到MyInterceptor
+
+4. 测试
+
+在Controller中添加输出:
+
+```java
+@GetMapping("/persons")
+public List<Person> getPersons() {
+    List<Person> personList = new ArrayList<>();
+    personList.add(new Person());
+    personList.get(0).setName("zero");
+    personList.get(0).setAge(10);
+    personList.get(0).setBirthday(new Date());
+    personList.add(new Person());
+    personList.get(1).setName("one");
+    personList.get(1).setAge(11);
+    personList.get(1).setBirthday(new Date());
+    personList.add(new Person());
+    personList.get(2).setName("two");
+    personList.get(2).setAge(12);
+    personList.get(2).setBirthday(new Date());
+    System.out.println("RestfulController getPersons");
+    return personList;
+}
+```
+
+---
+
+访问: `http://localhost:8080/restful/persons`, 查看输出
+
+```
+preHandle: http://localhost:8080/restful/persons-准备执行
+RestfulController getPersons
+postHandler: /restful/persons-处理成功
+afterCompletion: /restful/persons-响应内容已产生
+```
+
+RestfulController getPersons的输出可以看到postHandler的输出时机: 如果是在controller, 就是在内部方法return之后，但是还没有产生响应文本之前, 执行posthandler
+
+## 拦截器使用细则
+
+### 排除对静态资源的拦截
+
+直接访问`http://localhost:8080/client.html`, 后台输出:
+
+```
+preHandle: http://localhost:8080/client.html-准备执行
+postHandler: /client.html-处理成功
+afterCompletion: /client.html-响应内容已产生
+preHandle: http://localhost:8080/jquery-3.3.1.min.js-准备执行
+postHandler: /jquery-3.3.1.min.js-处理成功
+afterCompletion: /jquery-3.3.1.min.js-响应内容已产生
+```
+
+输入的是html, 但是打印了许多额外的信息. 对于client.html, 每一个发送localhost url的时候, 本质都是通过tomcat调用springmvc的解析功能来获取对应的资源, 这些资源因为符合之前配置的`/**`的规则, 都会被拦截.
+
+疑问, 因为之前配置了静态资源排除在外. 可以看到静态资源还是被拦截了, 
+
+```xml
+<mvc:default-servlet-handler/>
+```
+
+注意, 拦截器是不受该影响, 只要符合配置的url规则, 都会被处理(preHandler, postHandler, afterCompletion).
+
+但是大多数情况下, 并不希望对这些静态资源做处理, 添加配置排除: `<mvc:exclude-mapping path="/**.ico"/>`
+
+```xml
+<mvc:interceptors>
+    <mvc:interceptor>
+        <!-- 对哪些URL进行拦截 -->
+        <!-- /**: 所有请求 -->
+        <mvc:mapping path="/**"/>
+        <!-- 要排除的地址有哪些 -->
+        <mvc:exclude-mapping path="/**.ico"/>
+        <mvc:exclude-mapping path="/**.jpg"/>
+        <mvc:exclude-mapping path="/**.gif"/>
+        <mvc:exclude-mapping path="/**.js"/>
+        <mvc:exclude-mapping path="/**.css"/>
+
+        <!-- 拦截之后使用哪个class进行处理 -->
+        <bean class="com.imooc.restful.interceptor.MyInterceptor"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+之后就只对html做拦截:
+
+```
+preHandle: http://localhost:8080/client.html-准备执行
+postHandler: /client.html-处理成功
+afterCompletion: /client.html-响应内容已产生
+```
+
+---
+
+`mvc:exclude-mapping`的配置方式有一点不好, 实际开发过程中, 静态资源很多, 要把静态资源和controller做区分.
+
+-> 实际开发中: 将所有静态文件不直接放在webapp的根目录下, 而是全部放在webapp一个子目录下，这样拦截目录即可：
+
+![image-20220104212846809](img/springmvc/image-20220104212846809.png)
+
+将静态资源区分保存. 然后配置目录即可
+
+```xml
+<mvc:exclude-mapping path="/resources/**"/>
+```
+
+也可以针对某个uri的请求进行拦截
+
+```xml
+<mvc:mapping path="/restful/**"/>
+```
+
+如果有多个uri需要做拦截, 可以配置多条
+
+```xml
+<mvc:interceptors>
+    <mvc:interceptor>
+        <!-- 对哪些URL进行拦截 -->
+        <!-- /**: 所有请求 -->
+        <mvc:mapping path="/**"/>
+        <mvc:mapping path="/restful/**"/>
+        <mvc:mapping path="/webapi/**"/>
+        <!-- 要排除的地址有哪些 -->
+        <mvc:exclude-mapping path="/**.ico"/>
+        <mvc:exclude-mapping path="/**.jpg"/>
+        <mvc:exclude-mapping path="/**.gif"/>
+        <mvc:exclude-mapping path="/**.js"/>
+        <mvc:exclude-mapping path="/**.css"/>
+        <mvc:exclude-mapping path="/resources/**"/>
+        
+        <!-- 拦截之后使用哪个class进行处理 -->
+        <bean class="com.imooc.restful.interceptor.MyInterceptor"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+### 多Interceptor执行顺序
+
+一个请求被多个拦截器过滤, 执行顺序是怎样的
+
+1. 复制出类MyInterceptor2, 修改output添加2
+
+2. applicationContext.xml中配置
+
+```xml
+<mvc:interceptors>
+    <mvc:interceptor>
+        <!-- 对哪些URL进行拦截 -->
+        <!-- /**: 所有请求 -->
+        <mvc:mapping path="/**"/>
+        <mvc:mapping path="/restful/**"/>
+        <mvc:mapping path="/webapi/**"/>
+        <!-- 要排除的地址有哪些 -->
+        <mvc:exclude-mapping path="/**.ico"/>
+        <mvc:exclude-mapping path="/**.jpg"/>
+        <mvc:exclude-mapping path="/**.gif"/>
+        <mvc:exclude-mapping path="/**.js"/>
+        <mvc:exclude-mapping path="/**.css"/>
+
+        <mvc:exclude-mapping path="/resources/**"/>
+
+
+        <!-- 拦截之后使用哪个class进行处理 -->
+        <bean class="com.imooc.restful.interceptor.MyInterceptor"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+
+<!-- 另一个拦截器 -->
+<mvc:interceptors>
+    <mvc:interceptor>
+        <!-- 对哪些URL进行拦截 -->
+        <!-- /**: 所有请求 -->
+        <mvc:mapping path="/**"/>
+        <mvc:mapping path="/restful/**"/>
+        <mvc:mapping path="/webapi/**"/>
+        <!-- 要排除的地址有哪些 -->
+        <mvc:exclude-mapping path="/**.ico"/>
+        <mvc:exclude-mapping path="/**.jpg"/>
+        <mvc:exclude-mapping path="/**.gif"/>
+        <mvc:exclude-mapping path="/**.js"/>
+        <mvc:exclude-mapping path="/**.css"/>
+
+        <mvc:exclude-mapping path="/resources/**"/>
+
+
+        <!-- 拦截之后使用哪个class进行处理 -->
+        <bean class="com.imooc.restful.interceptor.MyInterceptor2"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+3. 查看输出结果:
+
+```
+preHandle: http://localhost:8080/client.html-准备执行
+preHandle2: http://localhost:8080/client.html-准备执行2
+postHandler2: /client.html-处理成功2
+postHandler: /client.html-处理成功
+afterCompletion2: /client.html-响应内容已产生2
+afterCompletion: /client.html-响应内容已产生
+```
+
+applicationContext中MyInterceptor配置在在MyInterceptor2前.
+
+preHandler过程中, 执行过程按照配置顺序来
+
+postHandler和afterCompletion的顺序与配置顺序相反
+
+原因如图:
+
+<img src="img/springmvc/image-20220104214531821.png" alt="image-20220104214531821" style="zoom:67%;" />
 
 
 
+### preHandler
 
+如果preHandler返回false
 
+可以看到输出只有preHandler, 并且页面空白
 
+```
+preHandle: http://localhost:8080/client.html-准备执行
+```
 
+阻断, 所有的后续请求都没有被处理, 被阻断. 因为return false, 响应看到的就是一个空字符串.
 
+---
 
+修改preHandler, 添加response writer中空数组
 
+```java
+@Override
+public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    System.out.println("preHandle: " + request.getRequestURL() + "-准备执行");
+    // return true;
+    response.getWriter().print("[]");
+    return false;
+    // return HandlerInterceptor.super.preHandle(request, response, handler);
+}
+```
 
+页面输出:
 
+![image-20220104215856763](img/springmvc/image-20220104215856763.png)
 
+控制台仍然输出:
 
+```
+preHandle: http://localhost:8080/client.html-准备执行
+```
 
+---
 
-
+通过preHandler可以做url的前置检查, 对不符合要求的url做拦截.
 
 ## 用户流量拦截器
 
@@ -2933,54 +3172,5 @@ public class MyInterceptor implements HandlerInterceptor {
 # Ref
 
 * 博客园笔记: [[明王不动心](https://www.cnblogs.com/yangmingxianshen/)](https://www.cnblogs.com/yangmingxianshen/p/12521605.html)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
