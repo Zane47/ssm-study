@@ -3306,13 +3306,13 @@ DispatchServlet做的第一件事情是查找handler。
 
 
 
-> 比如访问某一个url, 经过刚才查找handler以后, 发现当前的url呢, 他会被两个拦截器进行拦截之后, 该请求才会被到对应的Controller进行处理. 
+> 比如访问某一个url, 经过刚才查找handler以后, 发现当前的url会被两个拦截器进行拦截之后, 该请求才会被到对应的Controller进行处理. 
 
 > 那么像前后执行会形成一个链条, 请求被拦截器1处理完以后，那么会交由拦截器2再转交给对应的Controller. 形成处理的链条. 对于这个链条就称之为处理链.
 
-刚才我们的handler mapper, 它的作用就是获取在访问某一个url以后, 从前到后依次有哪些拦截器以及Controller来进行请求的处理. 
+刚才我们的HandlerMapper的作用就是获取在访问某一个url以后, 从前到后依次有哪些拦截器(Interceptor)以及Controller来进行请求的处理. 
 
-刚才强调的Handler, 也就是处理器. 本质就是拦截器, 以及Controller的统称. 当后文提到handler的时候, 将其理解为拦截器或Controller控制器就可以了。
+刚才强调的Handler, 也就是处理器. 本质就是拦截器以及Controller的统称. 当后文提到handler的时候, 将其理解为拦截器或Controller控制器.
 
 ---
 
@@ -3320,15 +3320,21 @@ DispatchServlet做的第一件事情是查找handler。
 
 执行对应handler方法是由中央处理器DispatchServlet向HandleAdapter(处理器适配器)发起的执行请求. 再由HandleAdapter根据handler的类型(刚才强调了这个handler可能是一个拦截器,也可能是一个控制器). 来决定执行对应的方法, 比如目标的handler实际类型是一个interceptor拦截器, 他就会去执行前置的处理方法; 如果实际类型为controller控制器, 那么它就会进入控制器中的对应方法来调用与url对应的方法. 
 
-如果从过滤链角度来说, Adapter在第一次执行的时候, handler的类型是拦截器, 首先会去执行前置处理方法, 之后请求向后送, 在第二个拦截器同样会执行前置处理方法. 但是根据执行链走到最后Controller的时候, 就变成了由HandlerAdapter去执行Controller对应的处理方法了。在处理完之后返回的数据会随着逆向依次返回. 这就是HandlerAdapter面对不同类型handler的时候所执行的逻辑.
+如果从上图过滤链角度来说, Adapter在第一次执行的时候, handler的类型是拦截器, 首先会去执行前置处理方法, 之后请求向后送, 在第二个拦截器同样会执行前置处理方法. 但是根据执行链走到最后Controller的时候, 就变成了由HandlerAdapter去执行Controller对应的处理方法了。在处理完之后返回的数据会随着逆向依次返回. 这就是HandlerAdapter面对不同类型handler的时候所执行的逻辑.
 
 ---
 
 回到处理流程中, 假设执行的是Controller的某个方法, 那么最常见的形式是这个方法返回一个ModelAndView对象. 该对象还是会被Adapter进行接收, 之后将ModelAndView对象返回给DispatchServlet.
 
+---
+
 当DispatchServlet接收到ModelAndView对象时, 需要判断当前返回的ModelAndView到底是由哪个模板引擎来进行处理. DispatchServlet根据返回的view中的配置, 如果使用了freemarker作为模板引擎, 由DispatchServlet选择与之对应的视图解析器(freemarker view resolver)进行对象的创建. 该视图对象会随着处理完返回给DispatchServlet. 
 
+---
+
 DispatchServlet拿到对象以后, 将model中存放的数据结合模板进行渲染, 渲染后得到最终的HTML, 该HTML会随着响应返回给客户端的浏览器对其进行解释, 就看到了最终展现的结果. 一个完整的springmvc处理流程就完成了.
+
+---
 
 主要涉及到了五大组件, 
 
