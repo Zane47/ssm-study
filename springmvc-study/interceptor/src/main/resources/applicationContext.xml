@@ -44,6 +44,16 @@
     </mvc:cors>
 
 
+    
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <!-- 对哪些URL进行拦截 -->
+            <!-- /**: 所有请求 -->
+            <mvc:mapping path="/**"/>
+            <!-- 拦截之后使用哪个class进行处理 -->
+            <bean class="com.imooc.restful.interceptor.MyInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
 
 
 

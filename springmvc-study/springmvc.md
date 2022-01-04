@@ -2771,13 +2771,122 @@ applicationContext中配置
 
 # SpringMVC拦截器
 
-
-
--> 过滤器
-
-
+-> 与过滤器filter有相似
 
 ## Interceptor拦截器
+
+* 拦截器(Interceptor)用于对URL请求进行前置/后置过滤。
+
+* Interceptor与Filter用途相似(对于请求的拦截), 但实现方式不同。
+
+    * Interceptor是SpringMVC的标准组件, Interceptor在被创建之后是天然运行在IOC容器之中的。
+
+    * Filter是J2EE的标准组件，不同的Filter是由不同的容器厂商所实现的。
+
+* Interceptor底层就是基于SpringAOP面向切面编程实现。与环绕通知很相似
+
+## 拦截器开发流程:
+
+* Maven依赖servlet-api, 底层依赖j2e的servlet
+
+* 实现HandlerInterceptor接口
+
+* applicationContext.xml拦截配置
+
+---
+
+1. pom添加依赖
+
+```xml
+<!-- 拦截器 -->
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+    <version>3.1.0</version>
+    <!--防止servlet自带api与tomcat配置的api相互冲突-->
+    <!--provided意味着只有在开发编译才会进行引用-->
+    <scope>provided</scope>
+</dependency>
+```
+
+最终的tomcat运行环境自带servlet-api jar包, 如果在程序打包发布的时候将当前的依赖也放入了war包, 可能造成工程中的servlet-api与tomcat自带的api版本冲突, 增加风险
+
+这里添加了`<scope>provided</scope>`, 含义是只有在开发编译的时候才会进行引用, 打包最终使用的时候该jar会被排除
+
+2. 新增MyInterceptor
+
+拦截器必须实现HandlerInterceptor接口, 同时必须实现以下三个方法:
+
+* preHandler: 前置执行处理. 请求产生后, 还没有进入controller前, 先进preHandler, 对请求进行预置处理.
+
+* postHandle: 目标资源已被SpringMVC框架处理. 例子: 如果是在controller, 就是在内部方法return之后，但是还没有产生响应文本之前, 执行posthandler. -> 目标资源已被处理, 但还没有产生响应文本
+
+* afterCompletion: 响应文本已经产生了, 执行afterCompletion. 比如在jackson自动实现序列化之后. 例如: 返回modelandview, 数据和模板引擎混合, 产生html片段, afterCompletion就会执行.
+
+preHandler: 必须返回布尔值，true请求会继续向后方(拦截器或者控制器)传递; false请求被阻止，直接返回响应给client.
+
+`request.getRequestURL()`: 获取当前的URL地址, 之前pom引入的依赖就是在这里使用, 参数都是指向了原生的Servletrequest和response对象, 不引入依赖的话就会报依赖的错误
+
+```java
+package com.imooc.restful.interceptor;
+
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * 拦截器必须实现HandlerInterceptor接口, 同时必须实现以下三个方法:
+ * <p>
+ * * preHandler: 前置执行处理. 请求产生后,
+ * 还没有进入controller前, 先进preHandler, 对请求进行预置处理.
+ * <p>
+ * * postHandle: 目标资源已被SpringMVC框架处理. 例子:
+ * 如果是在controller, 就是在内部方法return之后，但是还没有产生响应文本之前, 执行posthandler.
+ * <p>
+ * * afterCompletion: 响应文本已经产生了, 执行afterCompletion.
+ * 比如在jackson自动实现序列化之后.
+ * 例如: 返回modelandview, 数据和模板引擎混合, 产生html片段, afterCompletion就会执行.
+ */
+public class MyInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("preHandle: " + request.getRequestURL());
+        return true;
+        // return HandlerInterceptor.super.preHandle(request, response, handler);
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        System.out.println("postHandler: " + request.getRequestURI());
+
+        // HandlerInterceptor.super.postHandle(request, response, handler, modelAndView);
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        System.out.println("afterCompletion: " + request.getRequestURI());
+        // HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
+    }
+}
+```
+
+3. applicationContext配置
+
+```xml
+<mvc:interceptors>
+    <mvc:interceptor>
+        <!-- 对哪些URL进行拦截 -->
+        <!-- /**: 所有请求 -->
+        <mvc:mapping path="/**"/>
+        <!-- 拦截之后使用哪个class进行处理 -->
+        <bean class="com.imooc.restful.interceptor.MyInterceptor"/>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+
 
 
 
