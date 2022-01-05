@@ -758,7 +758,7 @@ insert, update, delete写操作才需要commit和rollback
 select不需要
 ![img.png](img/img_工作流程.png)
 
-# **MyBatis 高级特性**
+# **MyBatis高级特性**
 
 ## MyBatis 日志管理
 
