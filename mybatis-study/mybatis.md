@@ -2038,6 +2038,14 @@ public void testBatchDelete() {
 
 2. 在mybatis-conf中说明
 
+或者直接类上@Mapper注解
+
+```java
+@Mapper
+@Repository
+public interface StudentMapper {}
+```
+
 写法1:
 ```xml
 <mapper class="com.imooc.mybatis.dao.GoodsDAO" />
