@@ -2036,6 +2036,16 @@ public void testBatchDelete() {
 * sql语句与xml中一致
 * 用Param标签表示参数对应
 
+类声明: 添加注解@Mapper和@Repository
+
+```java
+@Mapper
+@Repository
+public interface StudentMapper {}
+```
+
+
+
 2. 在mybatis-conf中说明
 
 或者直接类上@Mapper注解
