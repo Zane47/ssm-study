@@ -1846,7 +1846,7 @@ org.springframework.context.event.internalEventListenerFactory: org.springframew
 
 原理: 
 
-@Resource和@Autowired方法都可以不适用setter方法来完成对象的注入, 运行时通过反射技术将属性从private修改为public, 再完成属性的直接赋值, 赋值完之后再改为private.
+@Resource和@Autowired方法都可以不使用setter方法来完成对象的注入, 运行时通过反射技术将属性从private修改为public, 再完成属性的直接赋值, 赋值完之后再改为private.
 
 ---
 
