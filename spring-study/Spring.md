@@ -3121,6 +3121,20 @@ execution(public *    com.imooc ..       *        .  *         (..))
 
 第一项public修饰符可以忽略, 调用的目标方法, 默认都是public
 
+```java
+/**
+* 切面表达式：
+* execution 代表所要执行的表达式主体
+* 第一处 * 代表方法返回类型 *代表所有类型
+* 第二处 包名代表aop监控的类所在的包
+* 第三处 .. 代表该包以及其子包下的所有类方法
+* 第四处 * 代表类名，*代表所有类
+* 第五处 *(..) *代表类中的方法名，(..)表示方法中的任何参数
+*/
+@Around("execution(* com.imooc.service.impl..*.*(..))")
+public Object recordTimeLog(ProceedingJoinPoint joinPoint) {}
+```
+
 ---
 
 * 希望只在XXXService上打印系统的时间 
