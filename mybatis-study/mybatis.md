@@ -2266,7 +2266,7 @@ public interface CategoryMapperCustom {
     </select>
 
     <resultMap id="myNewItemsVO" type="com.imooc.pojo.vo.NewItemsVO">
-        <id column="rootCatId" property="rootCategoryId"/>
+        <id column="rootCategoryId" property="rootCategoryId"/>
         <result column="rootCategoryName" property="rootCategoryName"/>
         <result column="slogan" property="slogan"/>
         <result column="categoryImage" property="categoryImage"/>
