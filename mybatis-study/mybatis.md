@@ -340,7 +340,7 @@ public void testSelectById(){
          limit 0 ,#{limt}
 </select>
 ```
-```
+```java
 public void testGoodsSeleceByPriceRange() {
     SqlSession sqlSession = null;
     try {
@@ -2197,7 +2197,142 @@ public void testResultMap() {
 ```
 
 
+
+# Spring Boot中的使用
+
+foodie-study中的自定义mapper记录
+
+## 传参和多表关联查询
+
+1. mapper接口定义
+
+```java
+package com.imooc.mapper;
+
+import com.imooc.pojo.vo.CategoryVO;
+import com.imooc.pojo.vo.NewItemsVO;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
+
+public interface CategoryMapperCustom {
+    public List<CategoryVO> getSubCategoryList(Integer rootCategoryId);
+    public List<NewItemsVO> getSixNewItemsLazy(@Param("paramsMap") Map<String, Object> map);
+}
+```
+
+2. 自定义mapper.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.imooc.mapper.CategoryMapperCustom">
+
+    <resultMap id="myCategoryVO" type="com.imooc.pojo.vo.CategoryVO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="fatherId" property="fatherId"/>
+
+        <!--
+          collection 标签：用于定义关联的list集合类型的封装规则
+          property：对应三级分类的list属性名
+          ofType：集合的类型，三级分类的vo
+        -->
+        <collection property="subCategoryList" ofType="com.imooc.pojo.vo.SubCategoryVO">
+            <id column="subId" property="subId"/>
+            <result column="subName" property="subName"/>
+            <result column="subType" property="subType"/>
+            <result column="subFatherId" property="subFatherId"/>
+        </collection>
+    </resultMap>
+
+    <select id="getSubCategoryList" resultMap="myCategoryVO" parameterType="int">
+        SELECT f.id        as id,
+               f.name      as name,
+               f.type      as type,
+               f.father_id as fatherId,
+               c.id        as subId,
+               c.name      as subName,
+               c.type      as subType,
+               c.father_id as subFatherId
+        FROM category f
+                 LEFT JOIN
+             category c
+             on
+                 f.id = c.father_id
+        WHERE f.father_id = #{rootCatId}
+    </select>
+
+    <resultMap id="myNewItemsVO" type="com.imooc.pojo.vo.NewItemsVO">
+        <id column="rootCatId" property="rootCategoryId"/>
+        <result column="rootCategoryName" property="rootCategoryName"/>
+        <result column="slogan" property="slogan"/>
+        <result column="categoryImage" property="categoryImage"/>
+        <result column="backgroundColor" property="backgroundColor"/>
+
+        <collection property="simpleItemList" ofType="com.imooc.pojo.vo.SimpleItemVO">
+            <id column="itemId" property="itemId"/>
+            <result column="itemName" property="itemName"/>
+            <result column="itemUrl" property="itemUrl"/>
+        </collection>
+    </resultMap>
+
+    <select id="getSixNewItemsLazy" resultMap="myNewItemsVO" parameterType="Map">
+        select f.id           as rootCategoryId,
+               f.name         as rootCategoryName,
+               f.slogan       as slogan,
+               f.cat_image    as categoryImage,
+               f.bg_color     as backgroundColor,
+               i.id           as itemId,
+               i.item_name    as itemName,
+               ii.url         as itemUrl,
+               i.created_time as createTime
+        from category f
+                 left join items i on f.id = i.root_cat_id
+                 left join items_img ii on i.id = ii.item_id
+        where f.type = 1
+          and ii.is_main = 1
+          and i.root_cat_id = #{paramsMap.rootCategoryId}
+        order by i.created_time desc
+        limit 0, 6;
+    </select>
+</mapper>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Problems
+
 ## Caused by: javax.net.ssl.SSLHandshakeException: No appropriate protocol (protocol is disabled or cipher suites are inappropriate)
 [solution](https://juejin.cn/post/6969142310718144520)
 
