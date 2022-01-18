@@ -2301,9 +2301,40 @@ public interface CategoryMapperCustom {
 </mapper>
 ```
 
+## sql查询中某个属性可能为空
 
+使用`<if>`标签
 
+```xml
+<select id="queryItemComments" parameterType="Map" resultType="com.imooc.pojo.vo.ItemCommentVO">
+    select ic.comment_level as commentLevel,
+    ic.content as contene,
+    ic.sepc_name as sepcName,
+    ic.created_time as createTime,
+    u.face as userFace,
+    u.nickname as nickname
+    from items_comments ic
+    left join users u on ic.user_id = u.id
+    where ic.item_id = #{paramsMap.itemId}
+    <if test=" paramsMap.level != null and paramsMap.level != '' ">
+        and ic.comment_level = #{paramsMap.level}
+    </if>
+</select>
+```
 
+```java
+package com.imooc.mapper;
+
+import com.imooc.pojo.vo.ItemCommentVO;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
+
+public interface ItemsMapperCustom {
+    public List<ItemCommentVO> queryItemComments(@Param("paramsMap") Map<String, Object> map);
+}
+```
 
 
 
