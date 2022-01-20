@@ -2340,38 +2340,38 @@ public interface ItemsMapperCustom {
 
 ```xml
 <!-- 商品搜索结果 -->
-<select id="searchItems" parameterType="Map" resultType="com.imooc.pojo.vo.SearchItemsVO">
-    select i.id as itemId,
-    i.item_name as itemName,
-    i.sell_counts as sellCounts,
-    ii.url as imgUrl,
-    temp_spec.priceDiscount as price
-    from items i
-    left join items_img ii on i.id = ii.item_id
-    left join (select item_id,
-    MIN(price_discount) as priceDiscount
-    from items_spec
-    group by item_id) temp_spec on i.id = temp_spec.item_id
-    where ii.is_main = 1
-    <if test=" paramsMap.keywords != null and paramsMap.keywords != '' ">
-        and i.item_name like '%${paramsMap.keywords}%'
-    </if>
-    order by
-    <choose>
-        <when test=" paramsMap.sort == &quot;c&quot;">
-            i.sell_counts desc
-        </when>
-        <when test=" paramsMap.sort == &quot;p&quot; ">
-            temp_spec.price_discount asc
-        </when>
-        <otherwise>
-            i.item_name asc
-        </otherwise>
-    </choose>
-</select>
-<!-- k: 默认，代表默认排序，根据name-->
-<!-- c: 根据销量排序-->
-<!-- p: 根据价格排序-->
+    <select id="searchItems" parameterType="Map" resultType="com.imooc.pojo.vo.SearchItemsVO">
+        select i.id as itemId,
+        i.item_name as itemName,
+        i.sell_counts as sellCounts,
+        ii.url as imgUrl,
+        temp_spec.price_discount as price
+        from items i
+        left join items_img ii on i.id = ii.item_id
+        left join (select item_id,
+        MIN(price_discount) as price_discount
+        from items_spec
+        group by item_id) temp_spec on i.id = temp_spec.item_id
+        where ii.is_main = 1
+        <if test=" paramsMap.keywords != null and paramsMap.keywords != '' ">
+            and i.item_name like '%${paramsMap.keywords}%'
+        </if>
+        order by
+        <choose>
+            <!-- k: 默认，代表默认排序，根据name-->
+            <!-- c: 根据销量排序-->
+            <!-- p: 根据价格排序-->
+            <when test="paramsMap.sort == &quot;c&quot;">
+                i.sell_counts desc
+            </when>
+            <when test="paramsMap.sort == &quot;p&quot;">
+                temp_spec.price_discount asc
+            </when>
+            <otherwise>
+                i.item_name asc
+            </otherwise>
+        </choose>
+    </select>
 ```
 
 ```java
