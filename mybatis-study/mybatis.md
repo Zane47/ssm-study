@@ -2380,6 +2380,52 @@ public interface ItemsMapperCustom {
 }
 ```
 
+## foreach
+
+```xml
+<!-- 购物车中按照拼接的规格id查询信息 -->
+<select id="queryItemsByJointSpecIds" parameterType="List" resultType="com.imooc.pojo.vo.ShopcartVO">
+    select t_items.id                  as itemId,
+    t_items.item_name           as itemName,
+    t_items_img.url             as itemImgUrl,
+    t_items_spec.id             as specId,
+    t_items_spec.name           as specName,
+    t_items_spec.price_discount as priceDiscount,
+    t_items_spec.price_normal   as priceNormal
+    from items_spec t_items_spec
+    left join items t_items on t_items_spec.item_id = t_items.id
+    left join items_img t_items_img on t_items_spec.item_id = t_items_img.item_id
+    where t_items_img.is_main = 1
+    and t_items_spec.id in
+    <foreach collection="paramsList" index="index" item="specId" open="(" separator="," close=")">
+        #{specId}
+    </foreach>
+</select>
+```
+
+```java
+public List<ShopcartVO> queryItemsByJointSpecIds(@Param("paramsList") List specIdsList);
+```
+
+```java
+/**
+     * 根据拼接的规格ids查询最新的购物车中商品数据(用于刷新渲染购物车中的商品数据)
+     */
+@Transactional(propagation = Propagation.SUPPORTS)
+@Override
+public List<ShopcartVO> queryItemsByJointSpecIds(String jointSpecIds) {
+
+    String[] ids = jointSpecIds.split(",");
+
+    List<String> specIds = new ArrayList<>();
+
+    Collections.addAll(specIds, ids);
+
+    //return itemsMapperCustom.queryItemsByJointSpecIds(specIds);
+    return null;
+}
+```
+
 
 
 
