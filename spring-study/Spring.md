@@ -52,7 +52,7 @@ Spring可从狭义与广义两个角度看待:
 
 IoC: 所有对象管理的基础, 包括AOP
 
-* Spring loC负责创建与管理系统对象，使用者从IoC容器中提取对象, 所以Spring可以在此基础上扩展功能, 例如AOP, 在方法前后扩展
+* Spring loC负责创建与管理系统对象, 使用者从IoC容器中提取对象, 所以Spring可以在此基础上扩展功能, 例如AOP, 在方法前后扩展
 
 ---
 
@@ -62,7 +62,7 @@ IoC: 所有对象管理的基础, 包括AOP
 
 四层
 
-* Core Container: 最核心, IOC容器, pom中引入的context就是该模块. 把这个模块引入以后，作为spring依赖关系，会把对应的号核心模块进行引入，它提供了spring最核心的代码实现以及Beans; Beans对对象进行创建和装配; SpEL是spring的表达式语言
+* Core Container: 最核心, IOC容器, pom中引入的context就是该模块. 把这个模块引入以后, 作为spring依赖关系, 会把对应的号核心模块进行引入, 它提供了spring最核心的代码实现以及Beans; Beans对对象进行创建和装配; SpEL是spring的表达式语言
 
 * TestS: Spring 提供的测试模块
 
@@ -82,13 +82,13 @@ IoC: 所有对象管理的基础, 包括AOP
 
 ### 传统开发方式
 
-对象直接引用导致对象硬性关联，程序难以扩展维护. 使用者主动创建对象
+对象直接引用导致对象硬性关联, 程序难以扩展维护. 使用者主动创建对象
 
 使用者 -> new ObjectA -> new ObjectB
 
 ### 使用Spring IoC
 
-Spring IoC容器是Spring生态的地基，用于统一创建与管理对象依赖
+Spring IoC容器是Spring生态的地基, 用于统一创建与管理对象依赖
 
 <img src="img/Spring/image-20211220154255025.png" alt="image-20211220154255025" style="zoom: 67%;" />
 
@@ -98,8 +98,8 @@ Spring IoC容器是Spring生态的地基，用于统一创建与管理对象依�
 
 >  SpringIoC容器职责:
 >
-> * 对象的控制权交由**第三方**统一管理（loC控制反转）
-> * 利用Java**反射**技术实现**运行时**对象创建与关联（Dl依赖注入）
+> * 对象的控制权交由**第三方**统一管理（loC控制反转)
+> * 利用Java**反射**技术实现**运行时**对象创建与关联（Dl依赖注入)
 > * 基于配置提高应用程序的可维护性与扩展性
 
 # Spring IoC
@@ -110,19 +110,19 @@ Spring快速入门, Spring XML配置, 依赖注入配置, 对象实例化配置,
 
 ### 控制反转
 
-**控制反转（Inverse of Control）**是一种是面向对象编程中的一种设计理念，用来减低计算机代码之间的耦合度。其基本思想是：借助于“第三方”实现具有依赖关系的对象之间的解耦。
+**控制反转（Inverse of Control)**是一种是面向对象编程中的一种设计理念, 用来减低计算机代码之间的耦合度. 其基本思想是: 借助于"第三方"实现具有依赖关系的对象之间的解耦. 
 
 并不是由最终的消费者负责创建对象, 引入"代理人"的角色, 由"代理人"统一对象的创建和管理, 消费者面向"代理人"获取对象和进行信息的交换与处理
 
 IoC根本目的: 为了降低对象之间的直接耦合.通过代理人来做解耦, 对象之间可以灵活变化
 
-加入**IoC容器**将对象统一管理，让对象关联变为弱耦合
+加入**IoC容器**将对象统一管理, 让对象关联变为弱耦合
 
 ### DI依赖注入
 
-* IoC是设计理念，是现代程序设计遵循的标准，是宏观目标
+* IoC是设计理念, 是现代程序设计遵循的标准, 是宏观目标
 
-* DI(Dependency Injection)是具体技术实现，是微观实现; 在程序**运行过程**中完成对象的创建与绑定.
+* DI(Dependency Injection)是具体技术实现, 是微观实现; 在程序**运行过程**中完成对象的创建与绑定.
 
 运行过程 -> DI在Java中利用**反射**技术实现对象注入(Injection), 反射技术来做行为的动态变化, 例如:创建对象, 调用属性, 调用方法
 
@@ -176,7 +176,7 @@ child3.eat();
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!--在Ioc容器启动时，自动由Spring实例化Apple对象，取名sweetApple放入到容器中-->
+    <!--在Ioc容器启动时, 自动由Spring实例化Apple对象, 取名sweetApple放入到容器中-->
     <bean id="sweetApple" class="com.imooc.spring.ioc.entity.Apple">
         <property name="title" value="红富士"/>
         <property name="color" value="Red"/>
@@ -209,7 +209,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class SpringApplication {
     public static void main(String[] args) {
-        //创建SpringIoC容器，并根据配置文件在容器中实例化对象
+        //创建SpringIoC容器, 并根据配置文件在容器中实例化对象
         ApplicationContext context =
                 new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
 
@@ -260,7 +260,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class SpringApplication {
     public static void main(String[] args) {
-        //创建SpringIoC容器，并根据配置文件在容器中实例化对象
+        //创建SpringIoC容器, 并根据配置文件在容器中实例化对象
         ApplicationContext context =
                 new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
 
@@ -309,7 +309,7 @@ Java Bean, java可重用对象的编码要求, 例如: 必须有默认构造函�
 * xml文件中添加
 
 ```xml
-<!--在Ioc容器启动时，自动由Spring实例化Apple对象，取名sweetApple放入到容器中-->
+<!--在Ioc容器启动时, 自动由Spring实例化Apple对象, 取名sweetApple放入到容器中-->
 <!--
     bean: 通知IOC容器需要实例化什么对象
     class: 从哪个类进行实例化
@@ -326,7 +326,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class SpringApplication {
     public static void main(String[] args) {
-        //创建SpringIoC容器，并根据配置文件在容器中实例化对象
+        //创建SpringIoC容器, 并根据配置文件在容器中实例化对象
         ApplicationContext context =
                 new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
     }
@@ -455,7 +455,7 @@ org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating
 
 工厂模式: 隐藏创建类的细节, 通过额外的工厂类组织创建需要的对象
 
-静态工厂: 静态工厂通过静态方法(static)创建对家，隐藏创建对象的细节
+静态工厂: 静态工厂通过静态方法(static)创建对家, 隐藏创建对象的细节
 
 1. 新建AppleStaticFactory
 
@@ -463,7 +463,7 @@ org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating
 import com.imooc.spring.ioc.entity.Apple;
 
 /**
- * 静态工厂通过静态方法创建对家，隐藏创建对象的细节
+ * 静态工厂通过静态方法创建对家, 隐藏创建对象的细节
  */
 public class AppleStaticFactory {
     public static Apple createSweetApple() {
@@ -578,8 +578,8 @@ id和name的相同点:
 
 id和name的区别:
 
-* id要求更为严格，一次只能定义一个对象标识（推荐）
-* name更为宽松，一次允许定义多个对象标识
+* id要求更为严格, 一次只能定义一个对象标识(推荐)
+* name更为宽松, 一次允许定义多个对象标识
 * tips:id与name的命名要求有意义,按驼峰命名书写
 
 ##### 多个applicationContext文件
@@ -591,7 +591,7 @@ id和name的区别:
 ```java
 String[] configLocatoins = new String[]{"classpath:applicationContext.xml", "classpath:applicationContext-1.xml"};
 
-//创建SpringIoC容器，并根据配置文件在容器中实例化对象
+//创建SpringIoC容器, 并根据配置文件在容器中实例化对象
 ApplicationContext context =
     new ClassPathXmlApplicationContext(configLocatoins);
 
@@ -601,7 +601,7 @@ System.out.println(sweetApple.getTitle());
 
 按照String[]中的顺序, 先加载applicationContext, 再加载了applicationContext-1, 覆盖了旧对象
 
-##### id的标识唯一, name更为宽松，一次允许定义多个对象标识
+##### id的标识唯一, name更为宽松, 一次允许定义多个对象标识
 
 ```xml
 <bean name="sweetApple, apple7" class="com.imooc.spring.ioc.entity.Apple">
@@ -639,14 +639,14 @@ System.out.println(apple.getTitle());
 IOC加载配置使用的路径匹配表达式
 
 ```java
-//创建SpringIoC容器，并根据配置文件在容器中实例化对象
+//创建SpringIoC容器, 并根据配置文件在容器中实例化对象
 ApplicationContext context =
                 new ClassPathXmlApplicationContext("classpath:applicationContext.xml")
     
 // 加载多配置文件
 String[] configLocatoins = new String[]{"classpath:applicationContext.xml", "classpath:applicationContext-1.xml"};
 
-//创建SpringIoC容器，并根据配置文件在容器中实例化对象
+//创建SpringIoC容器, 并根据配置文件在容器中实例化对象
 ApplicationContext context =
     new ClassPathXmlApplicationContext(configLocatoins);
 ```
@@ -667,7 +667,7 @@ ApplicationContext context =
 | classpath:com/imooc/config.xml  | 扫描classpath下(不包含jar)com.imooc包中的config.xml |
 | classpath*:com/imooc/config.xml | 扫描classpath下(包含jar)com.imooc包中的config.xml   |
 | classpath:config-*.xml          | 扫描classpath根路径下所有以config-开头的XML文件     |
-| classpath:com/**/config.xml     | 扫描com包下（包含任何子包）的config.xml             |
+| classpath:com/**/config.xml     | 扫描com包下(包含任何子包)的config.xml               |
 | file:c:/config.xml              | 扫描c盘根路径config.xml                             |
 
 * 不包含jar: 只扫描自己写的target中的资源或配置文件, 因为引入的maven依赖jar包本质也是压缩包, 其中也有可能包含配置文件
@@ -1123,7 +1123,7 @@ context.getBean(beanName).toString();// 重写toString方法
 * bean scope属性用于决定对象何时被创建与作用范围
 * bean scope配置将影响容器内对象的数量
 * bean scope默认值singleton(单例),指全局共享同一个对象实例
-* 默认情况下bean会在loC容器创建后自动实例化，全局唯一
+* 默认情况下bean会在loC容器创建后自动实例化, 全局唯一
 
 ```xml
 <bean id="bookDao"
@@ -1131,14 +1131,14 @@ context.getBean(beanName).toString();// 重写toString方法
 	scope="prototype" />
 ```
 
-| scope属性     | 说明                                                         |
-| ------------- | ------------------------------------------------------------ |
-| **singleton** | 单例（默认值），每一个容器有且只有唯一的实例，实例被全局共享 |
-| **prototype** | 多例，每次使用时都是创建一个实例                             |
-| request       | web环境下，每一次独立请求存在唯一实例                        |
-| session       | web环境下,每一个session存在有唯一实例                        |
-| application   | web环境下,ServletContext存在唯一实例                         |
-| websocket     | 每一次WebSocket连接中存在唯一实例                            |
+| scope属性     | 说明                                                       |
+| ------------- | ---------------------------------------------------------- |
+| **singleton** | 单例(默认值), 每一个容器有且只有唯一的实例, 实例被全局共享 |
+| **prototype** | 多例, 每次使用时都是创建一个实例                           |
+| request       | web环境下, 每一次独立请求存在唯一实例                      |
+| session       | web环境下,每一个session存在有唯一实例                      |
+| application   | web环境下,ServletContext存在唯一实例                       |
+| websocket     | 每一次WebSocket连接中存在唯一实例                          |
 
 ### singleton单例
 
@@ -1156,7 +1156,7 @@ userDao对象被其他所有的应用对象共享
 
 如果b1, b2, b3同时发起调用, 会不会阻塞?
 
-不会, singleton在容器是单例多线程执行，但是存在**线程安全风险**
+不会, singleton在容器是单例多线程执行, 但是存在**线程安全风险**
 
 * singleton的线程安全问题
 
@@ -1424,8 +1424,8 @@ UserService: setUserDao. com.imooc.spring.ioc.dao.UserDao@4566e5bd
 
 3. 对象注入属性: 根据前面解析的XML, 就知道要为当前新创建的对象注入哪些属性
 
-4. 当对象注入以后，由ioc容器会自动的去调用对象的init-method初始化方法, 完成对象的初始化工作
-   * 这里有一个注意点, 之前说得对象初始化在构造方法中完成, 为什么这里又有一个init-method的配置? 因为在构造方法创建的时候，作为这个对象，他还没有任何属性. 只有当对象创建好之后, IOC容器才为其注入了这个对象数据. 
+4. 当对象注入以后, 由ioc容器会自动的去调用对象的init-method初始化方法, 完成对象的初始化工作
+   * 这里有一个注意点, 之前说得对象初始化在构造方法中完成, 为什么这里又有一个init-method的配置? 因为在构造方法创建的时候, 作为这个对象, 他还没有任何属性. 只有当对象创建好之后, IOC容器才为其注入了这个对象数据. 
    * init的作用就是在为对象注入属性值之后, 基于属性值完成对象的初始化工作
 
 5. IOC容器初始化完毕后, 通过代码调用这些对象的业务代码
@@ -1706,8 +1706,8 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 优势: 
 
 * 摆脱繁琐的XML形式的bean与依赖注入配置(bean很多的话, 需要写很多, 要源代码和xml文件之间切换)
-* 基于”声明式”的原则，更适合轻量级的现代企业应用(注解是写在源代码中的配置信息)
-* 让代码可读性变得更好，研发人员拥有更好的开发体验
+* 基于"声明式"的原则, 更适合轻量级的现代企业应用(注解是写在源代码中的配置信息)
+* 让代码可读性变得更好, 研发人员拥有更好的开发体验
 
 三种注解:
 
@@ -1719,10 +1719,10 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
 
 | 注解        | 说明                                                        |
 | ----------- | ----------------------------------------------------------- |
-| @Component  | 组件注解，通用注解，被该注解描述的类将被loC容器管理并实例化 |
-| @Controller | 语义注解，说明当前类是MVC应用中的控制器类                   |
-| @Service    | 语义注解，说明当前类是Service业务服务类                     |
-| @Repository | 语义注解，说明当前类用于业务持久层，通常描述对应Dao类       |
+| @Component  | 组件注解, 通用注解, 被该注解描述的类将被loC容器管理并实例化 |
+| @Controller | 语义注解, 说明当前类是MVC应用中的控制器类                   |
+| @Service    | 语义注解, 说明当前类是Service业务服务类                     |
+| @Repository | 语义注解, 说明当前类用于业务持久层, 通常描述对应Dao类       |
 
 通常放在java类上, 各自的语义就是当前的bean需要被IOC容器创建和管理, 利用注解通知IOC容器各自类的职责是什么
 
@@ -1731,7 +1731,7 @@ Component: 开发中无法确认该类是controller, service还是repository, �
 * 需要开启组件扫描才可以使用注解
 
 ```xml
-<！--XML配置开启组件扫描，才能使用注解-->
+<！--XML配置开启组件扫描, 才能使用注解-->
 <context:component-scan base-package="com.imooc">
     <!-- 不想扫描的类, 正则表达式 -->
 	<context:exclude-filter type="regex" expression="com.imooc.exl.*"/>
@@ -1835,12 +1835,12 @@ org.springframework.context.event.internalEventListenerFactory: org.springframew
 <img src="img/Spring/image-20211224101102432.png" alt="image-20211224101102432" style="zoom:67%;" />
 
 * 按类型装配:
-  * @Autowired: 按容器内对象类型动态注入属性，由Spring机构提供, spring自己定义的规则
+  * @Autowired: 按容器内对象类型动态注入属性, 由Spring机构提供, spring自己定义的规则
   * @Inject: 基于JSR-330(Dependency Injection for Java)标准,其他同@Autowired,但不支持required属性,java的行业标准
 
 * 按名称装配:
-  * @Named: 与@Inject配合使用，JSR-330规范，按属性名自动装配
-  * @Resource: 基于JSR-250规范，优先按名称、再按类型智能匹配
+  * @Named: 与@Inject配合使用, JSR-330规范, 按属性名自动装配
+  * @Resource: 基于JSR-250规范, 优先按名称、再按类型智能匹配
 
 在实际过程中推荐按名称装配, autowired的问题见`代码演示`
 
@@ -1977,7 +1977,7 @@ com.imooc.spring.dao.UserDao@fcd6521
 
 但是一个执行了set方法, 一个没有执行, 两个机制完全不同. ***重要!!!***
 
-* 如果装配注解Autowired放在set方法上，则自动按类型/名称对set方法参数进行注入. IOC容器会自动将容器中类型为UserDao的对象注入到set参数userDao中, 然后执行代码
+* 如果装配注解Autowired放在set方法上, 则自动按类型/名称对set方法参数进行注入. IOC容器会自动将容器中类型为UserDao的对象注入到set参数userDao中, 然后执行代码
 
 * 如果装配注解Autowired放在属性上,  Spring Ioc容器会自动通过反射技术将属性private修饰符自动改为public,直接进行赋值, 不再执行set方法. 在运行时动态完成
 
@@ -2050,7 +2050,7 @@ public class UserService {
     }
 
     /*@Autowired
-    // 如果装配注解Autowired放在set方法上，则自动按类型/名称对set方法参数进行注入
+    // 如果装配注解Autowired放在set方法上, 则自动按类型/名称对set方法参数进行注入
     public void setUserDao(UserDao userDao) {
         System.out.println("setUserDao: " + userDao);
         this.userDao = userDao;
@@ -2091,11 +2091,11 @@ Caused by: org.springframework.beans.factory.NoUniqueBeanDefinitionException: No
 注解流程:
 
 ```
-1.@Resource设置name属性，则按name在Ioc容器中将bean注入, 如果未找到, 则报错
+1.@Resource设置name属性, 则按name在Ioc容器中将bean注入, 如果未找到, 则报错
 2.@Resource未设置name属性
-2.1 以属性名作为bean name在IoC容器中匹配bean，如有匹配, 则注入
-2.2 按属性名未匹配，则按类型进行匹配，同@Autowired, 如果出现冲突, 需加入Primary解决类型冲突
-使用建议：在使用@Resource对象时推荐设置name或保证属性名与bean名称一致
+2.1 以属性名作为bean name在IoC容器中匹配bean, 如有匹配, 则注入
+2.2 按属性名未匹配, 则按类型进行匹配, 同@Autowired, 如果出现冲突, 需加入Primary解决类型冲突
+使用建议: 在使用@Resource对象时推荐设置name或保证属性名与bean名称一致
 ```
 
 1. 新增DepartmentService
@@ -2110,11 +2110,11 @@ import javax.annotation.Resource;
 public class DepartmentService {
 
     /**
-     * 1.@Resource设置name属性，则按name在Ioc容器中将bean注入, 如果未找到, 则报错
+     * 1.@Resource设置name属性, 则按name在Ioc容器中将bean注入, 如果未找到, 则报错
      * 2.@Resource未设置name属性
-     * 2.1 以属性名作为bean name在IoC容器中匹配bean，如有匹配则注入
-     * 2.2 按属性名未匹配，则按类型进行匹配，同@Autowired,如果出现冲突, 需加入Primary解决类型冲突
-     * 使用建议：在使用@Resource对象时推荐设置name或保证属性名与bean名称一致
+     * 2.1 以属性名作为bean name在IoC容器中匹配bean, 如有匹配则注入
+     * 2.2 按属性名未匹配, 则按类型进行匹配, 同@Autowired,如果出现冲突, 需加入Primary解决类型冲突
+     * 使用建议: 在使用@Resource对象时推荐设置name或保证属性名与bean名称一致
      */
     // 1. 使用namne
     /*@Resource(name = "userOracleDao")
@@ -2170,9 +2170,9 @@ com.imooc.spring.dao.UserOracleDao@5204062d
 
 | 注解           | 说明                                                       |
 | -------------- | ---------------------------------------------------------- |
-| @Primary       | 按类型装配时出现多个相同类型对象，拥有此注解对象优先被注入 |
-| @PostConstruct | 描述方法，相当于XML中init-method配置的注解版本             |
-| @PreDestroy    | 描述方法，相当于XML中destroy-method配置的注解版本          |
+| @Primary       | 按类型装配时出现多个相同类型对象, 拥有此注解对象优先被注入 |
+| @PostConstruct | 描述方法, 相当于XML中init-method配置的注解版本             |
+| @PreDestroy    | 描述方法, 相当于XML中destroy-method配置的注解版本          |
 | @Scope         | 设置对象的scope属性                                        |
 | @Value         | 为属性注入静态数据                                         |
 
@@ -2210,7 +2210,7 @@ public class UserService {
     }
 
     /*@Autowired
-    // 如果装配注解Autowired放在set方法上，则自动按类型/名称对set方法参数进行注入
+    // 如果装配注解Autowired放在set方法上, 则自动按类型/名称对set方法参数进行注入
     public void setUserDao(UserDao userDao) {
         System.out.println("setUserDao: " + userDao);
         this.userDao = userDao;
@@ -2284,9 +2284,9 @@ xml不需要修改源代码, 但是配置繁琐
 
 优势:
 
-* 完全摆脱XML的束缚，使用独立Java类管理对象与依赖
-* 注解配置相对分散，利用Java Config可对配置集中管理
-* 可以在编译时进行依赖检查(Java源代码, ide检查)，不容易出错. xml中都是在运行中检查
+* 完全摆脱XML的束缚, 使用独立Java类管理对象与依赖
+* 注解配置相对分散, 利用Java Config可对配置集中管理
+* 可以在编译时进行依赖检查(Java源代码, ide检查), 不容易出错. xml中都是在运行中检查
 
 劣势:
 
@@ -2298,10 +2298,10 @@ xml不需要修改源代码, 但是配置繁琐
 
 | 注解            | 说明                                                         |
 | --------------- | ------------------------------------------------------------ |
-| @Configuration  | 描述类，说明当前类是Java Config配置类，完全替代XML文件       |
-| @Bean           | 描述**方法**，方法返回对象将被loC容器管理，beanld默认为方法名 |
-| @ImportResource | 描述类，加载静态文件，可使用@Value注解获取                   |
-| @ComponentScan  | 描述类，同XML的`<context:compoment-scan>`标签                |
+| @Configuration  | 描述类, 说明当前类是Java Config配置类, 完全替代XML文件       |
+| @Bean           | 描述**方法**, 方法返回对象将被loC容器管理, beanld默认为方法名 |
+| @ImportResource | 描述类, 加载静态文件, 可使用@Value注解获取                   |
+| @ComponentScan  | 描述类, 同XML的`<context:compoment-scan>`标签                |
 
 ### Java Config实例化
 
@@ -2318,7 +2318,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration// 当前类是一个配置类, 用于替代applicationContext.xml
 public class Config {
 
-    // Java Config利用方法创建对象，将方法返回对象放入容器，beanId=方法名
+    // Java Config利用方法创建对象, 将方法返回对象放入容器, beanId=方法名
     // <bean id="XXX" class="XXX"
     @Bean
     public UserDao userDao() {
@@ -2407,7 +2407,7 @@ import org.springframework.validation.annotation.Validated;
 @Configuration// 当前类是一个配置类, 用于替代applicationContext.xml
 public class Config {
 
-    // Java Config利用方法创建对象，将方法返回对象放入容器，beanId=方法名
+    // Java Config利用方法创建对象, 将方法返回对象放入容器, beanId=方法名
     // <bean id="XXX" class="XXX"
     @Bean
     public UserDao userDao() {
@@ -2485,7 +2485,7 @@ userController: com.imooc.spring.ioc.controller.UserController@6166e06f
 
 setter是在运行中注入的, 那么是按照类型注入的, 还是按照名称注入的?
 
-先按name尝试注入，name不存在则按类型注入
+先按name尝试注入, name不存在则按类型注入
 
 Service的setter中参数是userDao, 正好上面的bean name也是userDao, 可以注入
 
@@ -2801,7 +2801,7 @@ AOP: Spring中的可插拔的组件技术
 
 * Spring AOP-Aspect Oriented Programming 面向切面编程
 * AOP的做法是将通用、与业无关的功能抽象封装为切面类, 再通过配置的形式加入到系统中
-* 切面可配置在目标方法的执行前、后运行，真正做到即插即用
+* 切面可配置在目标方法的执行前、后运行, 真正做到即插即用
 
 ***在不修改源码的情况下对程序行为进行扩展***
 
@@ -3027,11 +3027,11 @@ AOP的配置过程:
 
 | 注解                | 说明                                                         |
 | ------------------- | ------------------------------------------------------------ |
-| Aspect              | 1. 切面，具体的可插拔组件功能类，通常一个切面只实现一个通用功能, <br />2. 本质上就是一个标准的类, 在切面类上定义切面方法(具体的功能扩展)<br />3. `public void printExecTime(JoinPoint joinPoint)`返回值是void/Object, 重要的是参数joinPoint连接点, 通过连接点可以获取目标类/方法的信息 |
-| Target Class/Method | 目标类、目标方法，指真正要执行与业务相关的方法<br />之前例子中类中的create, insert方法<br />切面就是对这些目标方法进行增强 |
-| PointCut            | 切入点(切点)，使用execution表达式说明切面要作用在系统的哪些类上 |
-| JoinPoint           | 连接点，切面运行过程中是包含了目标类/方法元数据的对象        |
-| Advice              | 通知，说明具体的切面的执行时机，Spring包含了五种不同类型通知 |
+| Aspect              | 1. 切面, 具体的可插拔组件功能类, 通常一个切面只实现一个通用功能, <br />2. 本质上就是一个标准的类, 在切面类上定义切面方法(具体的功能扩展)<br />3. `public void printExecTime(JoinPoint joinPoint)`返回值是void/Object, 重要的是参数joinPoint连接点, 通过连接点可以获取目标类/方法的信息 |
+| Target Class/Method | 目标类、目标方法, 指真正要执行与业务相关的方法<br />之前例子中类中的create, insert方法<br />切面就是对这些目标方法进行增强 |
+| PointCut            | 切入点(切点), 使用execution表达式说明切面要作用在系统的哪些类上 |
+| JoinPoint           | 连接点, 切面运行过程中是包含了目标类/方法元数据的对象        |
+| Advice              | 通知, 说明具体的切面的执行时机, Spring包含了五种不同类型通知 |
 
 AOP配置:
 
@@ -3123,13 +3123,13 @@ execution(public *    com.imooc ..       *        .  *         (..))
 
 ```java
 /**
-* 切面表达式：
+* 切面表达式: 
 * execution 代表所要执行的表达式主体
 * 第一处 * 代表方法返回类型 *代表所有类型
 * 第二处 包名代表aop监控的类所在的包
 * 第三处 .. 代表该包以及其子包下的所有类方法
-* 第四处 * 代表类名，*代表所有类
-* 第五处 *(..) *代表类中的方法名，(..)表示方法中的任何参数
+* 第四处 * 代表类名, *代表所有类
+* 第五处 *(..) *代表类中的方法名, (..)表示方法中的任何参数
 */
 @Around("execution(* com.imooc.service.impl..*.*(..))")
 public Object recordTimeLog(ProceedingJoinPoint joinPoint) {}
@@ -3286,11 +3286,11 @@ insert one record to User
 
 | 说明                   | 注解                                                   |
 | ---------------------- | ------------------------------------------------------ |
-| Before Advice          | 前置通知，目标方法运行前执行                           |
-| After Returning Advice | 返回后通知，目标方法返回数据后执行                     |
-| After Throwing Advice  | 异常通知，目标方法抛出异常后执行                       |
-| After Advice           | 后置通知，目标方法运行后执行                           |
-| Around Advice          | 最强大通知，自定义通知执行时机，可决定目标方法是否运行 |
+| Before Advice          | 前置通知, 目标方法运行前执行                           |
+| After Returning Advice | 返回后通知, 目标方法返回数据后执行                     |
+| After Throwing Advice  | 异常通知, 目标方法抛出异常后执行                       |
+| After Advice           | 后置通知, 目标方法运行后执行                           |
+| Around Advice          | 最强大通知, 自定义通知执行时机, 可决定目标方法是否运行 |
 
 After Returning 和After Throwing是互斥的
 
@@ -3300,11 +3300,11 @@ After Advice: 类似try catch, finally. 无论成功与否, 都会执行
 
 特殊的"通知": 引介增强. 派生的, 类似通知的组件. 本质是一个拦截器
 
-* 引介增强(Introductionlnterceptor)是对类的增强，而非方法
+* 引介增强(Introductionlnterceptor)是对类的增强, 而非方法
 
 * 引介增强允许**在运行时**为目标类增加新属性或方法
 
-* 引介增强允许**在运行时**改变类的行为，让类随运行环境动态变更
+* 引介增强允许**在运行时**改变类的行为, 让类随运行环境动态变更
 
 #### 使用(三个标签)
 
@@ -3489,7 +3489,7 @@ Exception in thread "main" java.lang.RuntimeException: 用户已存在
 public Object check(ProceedingJoinPoint proceedingJoinPoint)
 ```
 
-2. 重要的参数ProceedingJoinPoint, 是JoinPoint的升级版，在原有功能外，还可以控制目标方法是否执行
+2. 重要的参数ProceedingJoinPoint, 是JoinPoint的升级版, 在原有功能外, 还可以控制目标方法是否执行
 
 ```java
 // 执行目标方法, 返回值为目标方法的返回值
@@ -3502,7 +3502,7 @@ Object ret = proceedingJoinPoint.proceed();
 
 ```java
 /**
-* ProceedingJoinPoint是JoinPoint的升级版，在原有功能外，还可以控制目标方法是否执行
+* ProceedingJoinPoint是JoinPoint的升级版, 在原有功能外, 还可以控制目标方法是否执行
 * 环绕通知可以完成之前的四种通知的所有工作
 *
 * 注意这里方法的返回值是Object, 将目标方法的返回值进行返回
@@ -3634,10 +3634,10 @@ public Object check(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {}
 
 ## Spring AOP实现原理
 
-Spring基于代理模式实现功能动态扩展，包含两种情况：
+Spring基于代理模式实现功能动态扩展, 包含两种情况: 
 
-* 目标类拥有接口，通过JDK动态代理实现功能扩展
-* 目标类没有接口，通过CGLib组件实现功能扩展
+* 目标类拥有接口, 通过JDK动态代理实现功能扩展
+* 目标类没有接口, 通过CGLib组件实现功能扩展
 
 先说明代理模式相关概念
 
@@ -3806,6 +3806,11 @@ create user
 
 ### JDK动态代理
 
+Spring基于代理模式实现功能动态扩展, 包含两种形式: 
+
+* 目标类拥有接口, 通过JDK动态代理实现功能扩展
+* 目标类没有接口, 通过CGLib组件实现功能扩展
+
 #### 演示
 
 静态代理: 手动创建代理类, 代理类实现接口, 并持有委托类的对象的引用, 在代理类的实现方法中做扩展
@@ -3829,7 +3834,7 @@ jdk1.2引入了反射机制, 其中有一个功能: 根据要实现的接口, �
 
 1. 代理类实现InvocationHandler
 
-* InvocationHandler是JDK提供的反射类，用于在JDK动态代理中对目标方法进行增强
+* InvocationHandler是JDK提供的反射类, 用于在JDK动态代理中对目标方法进行增强
 
  * InvocationHandler实现类与切面类的环绕通知类似
  * 使用invoke的方法对目标方法进行增强
@@ -3846,7 +3851,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * InvocationHandler是JDK提供的反射类，用于在JDK动态代理中对目标方法进行增强
+ * InvocationHandler是JDK提供的反射类, 用于在JDK动态代理中对目标方法进行增强
  * InvocationHandler实现类与切面类的环绕通知类似
  */
 public class ProxyInvocationHandler implements InvocationHandler {
@@ -3959,7 +3964,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * InvocationHandler是JDK提供的反射类，用于在JDK动态代理中对目标方法进行增强
+ * InvocationHandler是JDK提供的反射类, 用于在JDK动态代理中对目标方法进行增强
  * InvocationHandler实现类与切面类的环绕通知类似
  */
 public class ProxyInvocationHandler implements InvocationHandler {
@@ -4091,7 +4096,7 @@ Proxy是jdk1.2之后, 反射中提供的类, 他的作用是根据已有的接�
    代理类的功能:
 
    ```java
-   // 伪代码如下：
+   // 伪代码如下: 
    public class $Proxy0 implements UserService {    
        private UserService targetObject;    
        public void createUser() {        
@@ -4115,10 +4120,10 @@ Proxy.newProxyInstance()方法中, 会执行defineClass0: 将刚才的class文�
 
 ### CGLib
 
-Spring基于代理模式实现功能动态扩展，包含两种形式：
+Spring基于代理模式实现功能动态扩展, 包含两种形式: 
 
-* 目标类拥有接口，通过JDK动态代理实现功能扩展
-* 目标类没有接口，通过CGLib组件实现功能扩展
+* 目标类拥有接口, 通过JDK动态代理实现功能扩展
+* 目标类没有接口, 通过CGLib组件实现功能扩展
 
 ---
 
@@ -4217,8 +4222,8 @@ iUserService.createUser();
 ## Spring JDBC
 
 * Spring JDBC是Spring框架用于处理关系型数据库的模块
-* Spring JDBC对JDBC API进行封装，极大简化开发工作量
-* Jdbc Template是Spring JDBC核心类，提供数据CRUD方法
+* Spring JDBC对JDBC API进行封装, 极大简化开发工作量
+* Jdbc Template是Spring JDBC核心类, 提供数据CRUD方法
 
 原生的JDBC, 查询语句繁琐, 要检查sql链接是否被关闭, 容易出错
 
@@ -4242,7 +4247,7 @@ Spring JDBC的执行效率要比MyBatis高, 同时Spring IOC容器的存在, 不
 
 1. Maven工程引入依赖spring-jdbc
 2. applicationContext.xml配置DataSource数据源
-3. 在Dao注入JdbcTemplate对象，实现数据CRUD
+3. 在Dao注入JdbcTemplate对象, 实现数据CRUD
 
 ## Spring Jdbc配置
 
@@ -4631,11 +4636,11 @@ Spring中事务有两种, 编程式事务和声明式事务
 
 事务:
 
-事务是以一种可靠的、一致的方式，访问和操作数据库的程序单元.
+事务是以一种可靠的、一致的方式, 访问和操作数据库的程序单元.
 
-说人话：要么把事情做完，要么什么都不做，不要做一半
+说人话: 要么把事情做完, 要么什么都不做, 不要做一半
 
-事务依赖于数据库实现，MySQL通过事务区作为数据缓冲地带
+事务依赖于数据库实现, MySQL通过事务区作为数据缓冲地带
 
 ### 编程式事务
 
@@ -4959,9 +4964,9 @@ batch import done
 
 使用Spring AOP完成扩展. 本质就是AOP环绕通知
 
-* 声明式事务指在不修改源码情况下通过配置形式自动实现事务控制，声明式事务本质就是**AOP环绕通知**
-* 当目标方法执行成功时，自动提交事务
-* 当目标方法抛出**运行时异常**时，自动事务回滚 
+* 声明式事务指在不修改源码情况下通过配置形式自动实现事务控制, 声明式事务本质就是**AOP环绕通知**
+* 当目标方法执行成功时, 自动提交事务
+* 当目标方法抛出**运行时异常**时, 自动事务回滚 
 
 ---
 
@@ -5021,7 +5026,7 @@ public void batchImport() throws Exception {
 </bean>
 ```
 
-2. 事务通知配置，决定哪些方法使用事务，哪些方法不使用事务
+2. 事务通知配置, 决定哪些方法使用事务, 哪些方法不使用事务
 
 新增命名空间和schemaLocation: tx和aop. tx: transaction的缩写
 
@@ -5039,11 +5044,11 @@ https://www.springframework.org/schema/aop/spring-aop.xsd
 配置事务通知
 
 ```xml
-<!--2.事务通知配置，决定哪些方法使用事务，哪些方法不使用事务
+<!--2.事务通知配置, 决定哪些方法使用事务, 哪些方法不使用事务
            propagation: 事务传播行为, 绝大部分情况下都是REQUIRED代表需要时使用-->
 <tx:advice id="txAdvice" transaction-manager="transactionManager">
     <tx:attributes>
-        <!--目标方法名为batchImport时，启用声明式事务，成功则提交，运行时异常则回滚-->
+        <!--目标方法名为batchImport时, 启用声明式事务, 成功则提交, 运行时异常则回滚-->
         <tx:method name="batchImport" propagation="REQUIRED"/>
     </tx:attributes>
 </tx:advice>
@@ -5170,7 +5175,7 @@ get: 数据库获取单个对象, 或者获取对象内的属性
 ```xml
 <tx:advice id="txAdvice" transaction-manager="transactionManager">
     <tx:attributes>
-        <!--目标方法名为batchImport时，启用声明式事务，成功则提交，运行时异常则回滚-->
+        <!--目标方法名为batchImport时, 启用声明式事务, 成功则提交, 运行时异常则回滚-->
         <tx:method name="batchImport" propagation="REQUIRED"/>
         <tx:method name="batch*" propagation="REQUIRED"/>
         <!-- 设置findXXX方法不需要使用事务 -->
@@ -5513,12 +5518,478 @@ public void testBatchImport() {
 
 
 
+# Spring循环依赖注入
+
+## 前言
+
+Spring中的循环依赖一直是Spring中一个很重要的话题, 一方面是因为源码中为了解决循环依赖做了很多处理, 另外一方面是因为面试的时候, 如果问到Spring中比较高阶的问题, 那么循环依赖必定逃不掉. 如果你回答得好, 那么这就是你的必杀技, 反正, 那就是面试官的必杀技, 这也是取这个标题的原因, 当然, 本文的目的是为了让你在之后的所有面试中能多一个必杀技, 专门用来绝杀面试官！
+
+本文的核心思想就是, 
+
+当面试官问: 
+
+"请讲一讲Spring中的循环依赖. "的时候, 
+
+我们到底该怎么回答? 
+
+主要分下面几点
+
+1. 什么是循环依赖? 
+2. 什么情况下循环依赖可以被处理? 
+3. Spring是如何解决的循环依赖? 
+
+同时本文希望纠正几个目前业界内经常出现的几个关于循环依赖的错误的说法
+
+1. 只有在setter方式注入的情况下, 循环依赖才能解决(**错**)
+2. 三级缓存的目的是为了提高效率(**错**)
+
+## 什么是循环依赖? 
+
+从字面上来理解就是A依赖B的同时B也依赖了A, 就像下面这样
+
+![image-20200705175322521](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNTE3NTMyMjUyMS5wbmc?x-oss-process=image/format,png)
+
+体现到代码层次就是这个样子
+
+```java
+@Component
+public class A {
+    // A中注入了B
+    @Autowired
+    private B b;
+}
+
+@Component
+public class B {
+    // B中也注入了A
+    @Autowired
+    private A a;
+}
+```
+
+当然, 这是最常见的一种循环依赖, 比较特殊的还有
+
+```Java
+// 自己依赖自己
+@Component
+public class A {
+    // A中注入了A
+    @Autowired
+    private A a;
+}
+```
+
+虽然体现形式不一样, 但是实际上都是同一个问题----->循环依赖
+
+## 什么情况下循环依赖可以被处理? 
+
+在回答这个问题之前首先要明确一点, Spring解决循环依赖是有前置条件的
+
+1. 出现循环依赖的Bean必须要是单例
+2. 依赖注入的方式不能全是构造器注入的方式(很多博客上说, 只能解决setter方法的循环依赖, 这是错误的)
+
+其中第一点应该很好理解, 第二点: 不能全是构造器注入是什么意思呢? 我们还是用代码说话
+
+```Java
+@Component
+public class A {
+//    @Autowired
+//    private B b;
+    public A(B b) {
+
+    }
+}
+
+
+@Component
+public class B {
+
+//    @Autowired
+//    private A a;
+
+    public B(A a){
+
+    }
+}
+```
+
+在上面的例子中, A中注入B的方式是通过构造器, B中注入A的方式也是通过构造器, 这个时候循环依赖是无法被解决, 如果你的项目中有两个这样相互依赖的Bean, 在启动时就会报出以下错误: 
+
+```
+Caused by: org.springframework.beans.factory.BeanCurrentlyInCreationException: Error creating bean with name 'a': Requested bean is currently in creation: Is there an unresolvable circular reference?
+```
+
+为了测试循环依赖的解决情况跟注入方式的关系, 我们做如下四种情况的测试
+
+| 依赖情况             | 依赖注入方式                                       | 循环依赖是否被解决 |
+| :------------------- | :------------------------------------------------- | :----------------- |
+| AB相互依赖(循环依赖) | 均采用setter方法注入                               | 是                 |
+| AB相互依赖(循环依赖) | 均采用构造器注入                                   | 否                 |
+| AB相互依赖(循环依赖) | A中注入B的方式为setter方法, B中注入A的方式为构造器 | 是                 |
+| AB相互依赖(循环依赖) | B中注入A的方式为setter方法, A中注入B的方式为构造器 | 否                 |
+
+具体的测试代码跟简单, 我就不放了. 从上面的测试结果我们可以看到, 不是只有在setter方法注入的情况下循环依赖才能被解决, 即使存在构造器注入的场景下, 循环依赖依然被可以被正常处理掉. 
+
+那么到底是为什么呢？Spring到底是怎么处理的循环依赖呢? 不要急, 我们接着往下看
+
+## Spring是如何解决的循环依赖? 
+
+关于循环依赖的解决方式应该要分两种情况来讨论
+
+1. 简单的循环依赖(没有AOP)
+2. 结合了AOP的循环依赖
+
+### 简单的循环依赖(没有AOP)
+
+我们先来分析一个最简单的例子, 就是上面提到的那个demo
+
+```java
+@Component
+public class A {
+    // A中注入了B
+    @Autowired
+    private B b;
+}
+
+@Component
+public class B {
+    // B中也注入了A
+    @Autowired
+    private A a;
+}
+```
+
+通过上文我们已经知道了这种情况下的循环依赖是能够被解决的, 那么具体的流程是什么呢? 我们一步步分析
+
+首先, 我们要知道**Spring在创建Bean的时候默认是按照自然排序来进行创建的, 所以第一步Spring会去创建A**. 
+
+与此同时, 我们应该知道, Spring在创建Bean的过程中分为三步
+
+1. 实例化, 对应方法: `AbstractAutowireCapableBeanFactory`中的`createBeanInstance`方法
+2. 属性注入, 对应方法: `AbstractAutowireCapableBeanFactory`的`populateBean`方法
+3. 初始化, 对应方法: `AbstractAutowireCapableBeanFactory`的`initializeBean`
+
+这些方法在之前源码分析的文章中都做过详细的解读了, 如果你之前没看过我的文章, 那么你只需要知道
+
+1. 实例化, 简单理解就是new了一个对象
+2. 属性注入, 为实例化中new出来的对象填充属性
+3. 初始化, 执行aware接口中的方法, 初始化方法, 完成`AOP`代理
+
+基于上面的知识, 我们开始解读整个循环依赖处理的过程, 整个流程应该是以A的创建为起点, 前文也说了, 第一步就是创建A嘛！
+
+![image-20200706092738559](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjA5MjczODU1OS5wbmc?x-oss-process=image/format,png)
+
+创建A的过程实际上就是调用`getBean`方法, 这个方法有两层含义
+
+1. 创建一个新的Bean
+2. 从缓存中获取到已经被创建的对象
+
+我们现在分析的是第一层含义, 因为这个时候缓存中还没有A嘛！
+
+#### 调用getSingleton(beanName)
+
+首先调用`getSingleton(a)`方法, 这个方法又会调用`getSingleton(beanName, true)`, 在上图中我省略了这一步
+
+```java
+public Object getSingleton(String beanName) {
+    return getSingleton(beanName, true);
+}
+```
+
+`getSingleton(beanName, true)`这个方法实际上就是到缓存中尝试去获取Bean, 整个缓存分为三级
+
+1. `singletonObjects`, 一级缓存, 存储的是所有创建好了的单例Bean
+2. `earlySingletonObjects`, 完成实例化, 但是还未进行属性注入及初始化的对象
+3. `singletonFactories`, 提前暴露的一个单例工厂, 二级缓存中存储的就是从这个工厂中获取到的对象
+
+因为A是第一次被创建, 所以不管哪个缓存中必然都是没有的, 因此会进入`getSingleton`的另外一个重载方法`getSingleton(beanName, singletonFactory)`. 
+
+#### 调用getSingleton(beanName, singletonFactory)
+
+这个方法就是用来创建Bean的, 其源码如下: 
+
+```java
+public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
+    Assert.notNull(beanName, "Bean name must not be null");
+    synchronized (this.singletonObjects) {
+        Object singletonObject = this.singletonObjects.get(beanName);
+        if (singletonObject == null) {
+
+            // ....
+            // 省略异常处理及日志
+            // ....
+
+            // 在单例对象创建前先做一个标记
+            // 将beanName放入到singletonsCurrentlyInCreation这个集合中
+            // 标志着这个单例Bean正在创建
+            // 如果同一个单例Bean多次被创建, 这里会抛出异常
+            beforeSingletonCreation(beanName);
+            boolean newSingleton = false;
+            boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
+            if (recordSuppressedExceptions) {
+                this.suppressedExceptions = new LinkedHashSet<>();
+            }
+            try {
+                // 上游传入的lambda在这里会被执行, 调用createBean方法创建一个Bean后返回
+                singletonObject = singletonFactory.getObject();
+                newSingleton = true;
+            }
+            // ...
+            // 省略catch异常处理
+            // ...
+            finally {
+                if (recordSuppressedExceptions) {
+                    this.suppressedExceptions = null;
+                }
+                // 创建完成后将对应的beanName从singletonsCurrentlyInCreation移除
+                afterSingletonCreation(beanName);
+            }
+            if (newSingleton) {
+                // 添加到一级缓存singletonObjects中
+                addSingleton(beanName, singletonObject);
+            }
+        }
+        return singletonObject;
+    }
+}
+```
+
+上面的代码我们主要抓住一点, 通过`createBean`方法返回的Bean最终被放到了一级缓存, 也就是单例池中. 
+
+那么到这里我们可以得出一个结论: **一级缓存中存储的是已经完全创建好了的单例Bean**
+
+#### 调用addSingletonFactory方法
+
+如下图所示: 
+
+![image-20200706105535307](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjEwNTUzNTMwNy5wbmc?x-oss-process=image/format,png)
+
+在完成Bean的实例化后, 属性注入之前Spring将Bean包装成一个工厂添加进了三级缓存中, 对应源码如下: 
+
+```java
+// 这里传入的参数也是一个lambda表达式, () -> getEarlyBeanReference(beanName, mbd, bean)
+protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFactory) {
+    Assert.notNull(singletonFactory, "Singleton factory must not be null");
+    synchronized (this.singletonObjects) {
+        if (!this.singletonObjects.containsKey(beanName)) {
+            // 添加到三级缓存中
+            this.singletonFactories.put(beanName, singletonFactory);
+            this.earlySingletonObjects.remove(beanName);
+            this.registeredSingletons.add(beanName);
+        }
+    }
+}
+```
+
+这里只是添加了一个工厂, 通过这个工厂(`ObjectFactory`)的`getObject`方法可以得到一个对象, 而这个对象实际上就是通过`getEarlyBeanReference`这个方法创建的. 那么, 什么时候会去调用这个工厂的`getObject`方法呢? 这个时候就要到创建B的流程了. 
+
+当A完成了实例化并添加进了三级缓存后, 就要开始为A进行属性注入了, 在注入时发现A依赖了B, 那么这个时候Spring又会去`getBean(b)`, 然后反射调用setter方法完成属性注入. 
+
+![image-20200706114501300](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjExNDUwMTMwMC5wbmc?x-oss-process=image/format,png)
+
+因为B需要注入A, 所以在创建B的时候, 又会去调用`getBean(a)`, 这个时候就又回到之前的流程了, 但是不同的是, 之前的`getBean`是为了创建Bean, 而此时再调用`getBean`不是为了创建了, 而是要从缓存中获取, 因为之前A在实例化后已经将其放入了三级缓存`singletonFactories`中, 所以此时`getBean(a)`的流程就是这样子了
+
+![image-20200706115959250](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjExNTk1OTI1MC5wbmc?x-oss-process=image/format,png)
+
+从这里我们可以看出, 注入到B中的A是通过`getEarlyBeanReference`方法提前暴露出去的一个对象, 还不是一个完整的Bean, 那么`getEarlyBeanReference`到底干了啥了, 我们看下它的源码
+
+```Java
+protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
+    Object exposedObject = bean;
+    if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+        for (BeanPostProcessor bp : getBeanPostProcessors()) {
+            if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+                SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+                exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
+            }
+        }
+    }
+    return exposedObject;
+}
+```
+
+它实际上就是调用了后置处理器的`getEarlyBeanReference`, 而真正实现了这个方法的后置处理器只有一个, 就是通过`@EnableAspectJAutoProxy`注解导入的`AnnotationAwareAspectJAutoProxyCreator`. **也就是说如果在不考虑`AOP`的情况下, 上面的代码等价于: **
+
+```Java
+protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
+    Object exposedObject = bean;
+    return exposedObject;
+}
+```
+
+**也就是说这个工厂啥都没干, 直接将实例化阶段创建的对象返回了！所以说在不考虑`AOP`的情况下三级缓存有用嘛? 讲道理, 真的没什么用**, 我直接将这个对象放到二级缓存中不是一点问题都没有吗? 如果你说它提高了效率, 那你告诉我提高的效率在哪?
+
+
+
+那么三级缓存到底有什么作用呢? 不要急, 我们先把整个流程走完, 在下文结合`AOP`分析循环依赖的时候你就能体会到三级缓存的作用！
+
+到这里不知道小伙伴们会不会有疑问, B中提前注入了一个没有经过初始化的A类型对象不会有问题吗? 
+
+答: 不会
+
+这个时候我们需要将整个创建A这个Bean的流程走完, 如下图: 
+
+![image-20200706133018669](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjEzMzAxODY2OS5wbmc?x-oss-process=image/format,png)
+
+从上图中我们可以看到, 虽然在创建B时会提前给B注入了一个还未初始化的A对象, 但是在创建A的流程中一直使用的是注入到B中的A对象的引用, 之后会根据这个引用对A进行初始化, 所以这是没有问题的. 
+
+### 结合了AOP的循环依赖
+
+之前我们已经说过了, 在普通的循环依赖的情况下, 三级缓存没有任何作用. 三级缓存实际上跟Spring中的`AOP`相关, 我们再来看一看`getEarlyBeanReference`的代码: 
+
+```Java
+protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
+    Object exposedObject = bean;
+    if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+        for (BeanPostProcessor bp : getBeanPostProcessors()) {
+            if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+                SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+                exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
+            }
+        }
+    }
+    return exposedObject;
+}
+```
+
+如果在开启`AOP`的情况下, 那么就是调用到`AnnotationAwareAspectJAutoProxyCreator`的`getEarlyBeanReference`方法, 对应的源码如下: 
+
+```Java
+public Object getEarlyBeanReference(Object bean, String beanName) {
+    Object cacheKey = getCacheKey(bean.getClass(), beanName);
+    this.earlyProxyReferences.put(cacheKey, bean);
+    // 如果需要代理, 返回一个代理对象, 不需要代理, 直接返回当前传入的这个bean对象
+    return wrapIfNecessary(bean, beanName, cacheKey);
+}
+```
+
+回到上面的例子, 我们对A进行了`AOP`代理的话, 那么此时`getEarlyBeanReference`将返回一个代理后的对象, 而不是实例化阶段创建的对象, 这样就意味着B中注入的A将是一个代理对象而不是A的实例化阶段创建后的对象. ![image-20200706161709829](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjE2MTcwOTgyOS5wbmc?x-oss-process=image/format,png)
+
+看到这个图你可能会产生下面这些疑问
+
+1. 在给B注入的时候为什么要注入一个代理对象? 
+
+答: 当我们对A进行了`AOP`代理时, 说明我们希望从容器中获取到的就是A代理后的对象而不是A本身, 因此把A当作依赖进行注入时也要注入它的代理对象
+
+1. 明明初始化的时候是A对象, 那么Spring是在哪里将代理对象放入到容器中的呢? 
+
+![image-20200706160542584](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjE2MDU0MjU4NC5wbmc?x-oss-process=image/format,png)
+
+在完成初始化后, Spring又调用了一次`getSingleton`方法, 这一次传入的参数又不一样了, false可以理解为禁用三级缓存, 前面图中已经提到过了, 在为B中注入A时已经将三级缓存中的工厂取出, 并从工厂中获取到了一个对象放入到了二级缓存中, 所以这里的这个`getSingleton`方法做的时间就是从二级缓存中获取到这个代理后的A对象. `exposedObject == bean`可以认为是必定成立的, 除非你非要在初始化阶段的后置处理器中替换掉正常流程中的Bean, 例如增加一个后置处理器: 
+
+```java
+@Component
+public class MyPostProcessor implements BeanPostProcessor {
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (beanName.equals("a")) {
+            return new A();
+        }
+        return bean;
+    }
+}
+```
+
+不过, 请不要做这种骚操作, 徒增烦恼！
+
+1. 初始化的时候是对A对象本身进行初始化, 而容器中以及注入到B中的都是代理对象, 这样不会有问题吗? 
+
+答: 不会, 这是因为不管是`cglib`代理还是`jdk`动态代理生成的代理类, 内部都持有一个目标类的引用, 当调用代理对象的方法时, 实际会去调用目标对象的方法, A完成初始化相当于代理对象自身也完成了初始化
+
+1. 三级缓存为什么要使用工厂而不是直接使用引用? 换而言之, 为什么需要这个三级缓存, 直接通过二级缓存暴露一个引用不行吗? 
+
+答: **这个工厂的目的在于延迟对实例化阶段生成的对象的代理, 只有真正发生循环依赖的时候, 才去提前生成代理对象, 否则只会创建一个工厂并将其放入到三级缓存中, 但是不会去通过这个工厂去真正创建对象**
+
+我们思考一种简单的情况, 就以单独创建A为例, 假设AB之间现在没有依赖关系, 但是A被代理了, 这个时候当A完成实例化后还是会进入下面这段代码: 
+
+```java
+// A是单例的, mbd.isSingleton()条件满足
+// allowCircularReferences：这个变量代表是否允许循环依赖, 默认是开启的, 条件也满足
+// isSingletonCurrentlyInCreation：正在在创建A, 也满足
+// 所以earlySingletonExposure=true
+boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
+                                  isSingletonCurrentlyInCreation(beanName));
+// 还是会进入到这段代码中
+if (earlySingletonExposure) {
+    // 还是会通过三级缓存提前暴露一个工厂对象
+    addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
+}
+```
+
+看到了吧, 即使没有循环依赖, 也会将其添加到三级缓存中, 而且是不得不添加到三级缓存中, 因为到目前为止Spring也不能确定这个Bean有没有跟别的Bean出现循环依赖. 
+
+假设我们在这里直接使用二级缓存的话, 那么意味着所有的Bean在这一步都要完成`AOP`代理. 这样做有必要吗? 
+
+不仅没有必要, 而且违背了Spring在结合`AOP`跟Bean的生命周期的设计！Spring结合`AOP`跟Bean的生命周期本身就是通过`AnnotationAwareAspectJAutoProxyCreator`这个后置处理器来完成的, 在这个后置处理的`postProcessAfterInitialization`方法中对初始化后的Bean完成`AOP`代理. 如果出现了循环依赖, 那没有办法, 只有给Bean先创建代理, 但是没有出现循环依赖的情况下, 设计之初就是让Bean在生命周期的最后一步完成代理而不是在实例化后就立马完成代理. 
+
+### 三级缓存真的提高了效率了吗? 
+
+现在我们已经知道了三级缓存的真正作用, 但是这个答案可能还无法说服你, 所以我们再最后总结分析一波, 三级缓存真的提高了效率了吗? 分为两点讨论: 
+
+1. 没有进行`AOP`的Bean间的循环依赖
+
+从上文分析可以看出, 这种情况下三级缓存根本没用！所以不会存在什么提高了效率的说法
+
+1. 进行了`AOP`的Bean间的循环依赖
+
+就以我们上的A、B为例, 其中A被`AOP`代理, 我们先分析下使用了三级缓存的情况下, A、B的创建流程
+
+![image-20200706171514327](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjE3MTUxNDMyNy5wbmc?x-oss-process=image/format,png)
+
+假设不使用三级缓存, 直接在二级缓存中
+
+![image-20200706172523258](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9naXRlZS5jb20vd3hfY2MzNDdiZTY5Ni9ibG9nSW1hZ2UvcmF3L21hc3Rlci9pbWFnZS0yMDIwMDcwNjE3MjUyMzI1OC5wbmc?x-oss-process=image/format,png)
+
+上面两个流程的唯一区别在于为A对象创建代理的时机不同, 在使用了三级缓存的情况下为A创建代理的时机是在B中需要注入A的时候, 而不使用三级缓存的话在A实例化后就需要马上为A创建代理然后放入到二级缓存中去. 对于整个A、B的创建过程而言, 消耗的时间是一样的
+
+综上, 不管是哪种情况, 三级缓存提高了效率这种说法都是错误的！
+
+## 总结
+
+面试官: "Spring是如何解决的循环依赖? "
+
+答：
+
+Spring通过三级缓存解决了循环依赖, 其中一级缓存为单例池(`singletonObjects`),二级缓存为早期曝光对象`earlySingletonObjects`, 三级缓存为早期曝光对象工厂(`singletonFactories`). 
+
+当A、B两个类发生循环引用时, 在A完成实例化后, 就使用实例化后的对象去创建一个对象工厂, 并添加到三级缓存中, 如果A被AOP代理, 那么通过这个工厂获取到的就是A代理后的对象, 如果A没有被AOP代理, 那么这个工厂获取到的就是A实例化的对象. 
+
+当A进行属性注入时, 会去创建B, 同时B又依赖了A, 所以创建B的同时又会去调用getBean(a)来获取需要的依赖, 此时的getBean(a)会从缓存中获取:
+
+* 第一步, 先获取到三级缓存中的工厂；
+* 第二步, 调用对象工工厂的getObject方法来获取到对应的对象, 得到这个对象后将其注入到B中. 紧接着B会走完它的生命周期流程, 包括初始化、后置处理器等. 当B创建完后, 会将B再注入到A中, 此时A再完成它的整个生命周期. 至此, 循环依赖结束！
+
+面试官: "为什么要使用三级缓存呢? 二级缓存能解决循环依赖吗? "
+
+答: 如果要使用二级缓存解决循环依赖, 意味着所有Bean在实例化后就要完成AOP代理, 这样违背了Spring设计的原则, Spring在设计之初就是通过`AnnotationAwareAspectJAutoProxyCreator`这个后置处理器来在Bean生命周期的最后一步来完成AOP代理, 而不是在实例化后就立马进行AOP代理. 
+
+## 一道思考题
+
+为什么在下表中的第三种情况的循环依赖能被解决, 而第四种情况不能被解决呢? 
+
+提示：Spring在创建Bean时默认会根据自然排序进行创建, 所以A会先于B进行创建
+
+| 依赖情况             | 依赖注入方式                                       | 循环依赖是否被解决 |
+| :------------------- | :------------------------------------------------- | :----------------- |
+| AB相互依赖(循环依赖) | 均采用setter方法注入                               | 是                 |
+| AB相互依赖(循环依赖) | 均采用构造器注入                                   | 否                 |
+| AB相互依赖(循环依赖) | A中注入B的方式为setter方法, B中注入A的方式为构造器 | 是                 |
+| AB相互依赖(循环依赖) | B中注入A的方式为setter方法, A中注入B的方式为构造器 | 否                 |
+
+
+
+
+
+
+
+
+
 
 # Ref
 
 imooc:[Java工程师]( https://class.imooc.com/java2021#Anchor)
 
-
+[程序员DMZ:讲一讲Spring中的循环依赖](https://developer.aliyun.com/article/766880) 
 
 
 
